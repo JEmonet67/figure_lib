@@ -1,0 +1,35 @@
+
+	Module Graphes :
+- Ajouter fonction pour tracer flèche ou trait avec texte dans les figures.
+
+- Ajouter la possibilité de choisir le type de graph avec des sous-classe et mettre la classe Graph en abstraite
+- Modifier pour ne plus utiliser suplots() mais plutôt plt.Figure() et plt.add_subplot() afin de personnaliser la taille de chaque sous figures.
+- Ajouter et utiliser un json contenant tous les paramètres ? Faire un fichier de configuration de figure.
+
+
+
+
+- Améliorer les imports en retirant leur raccourcis
+- Modifier .copy() pour qu'il tienne plus compte des différentes valeurs de n_cells_y et x de chaque colonnes et les conserve.
+- Modifier sort_by_cell pour qu'il crée par un graphDF de toute pièce mais fasse une copie et prenne en compte des variations de n_cells_y et x pour les conserver.
+- Faire en sorte d'avoir des attributs xlabel/ylabel et titres dans les graphes ? Avoir une méthode pour les afficher si on utilise qu'un graph sans figure ?
+
+
+
+	Module Measuring :
+Un fichier Measuring_col et Measuring_df. Mettre un attribut dedans correspondant à la simulation afin d'utiliser toutes les infos sur la sim pour certains calculs.
+
+
+
+
+	Module infos macular :
+
+Stim <== SIM ==> Graph ==> Layers (with connectivity) ==> Cells (with connectivity)
+Use __getitems__() (Sim[x,y,z]) pour obtenir les infos d'une cellule en particulier. et Sim[z] pour obtenir info que sur une layer)
+Créer une méthode de Cell pour afficher sur une matrice les connections de la cellule.
+
+- Créer des méthodes d'info stim permettant d'analyser une vidéo de stimulus pour en tirer toutes ses caractéristiques. Il faudra renseigner pour cela le triplet RGB du fond et de l'objet.
+
+- Créer une classe infoGraphMacular pour récupérer les caractéristiques d'un graph macular et contenant le nombre de layer et un infoLayer contenant type de cellules, nombre de cellules en x/y, connectivité.
+
+- Transformer la classe InfoGrid en InfoLayer.
