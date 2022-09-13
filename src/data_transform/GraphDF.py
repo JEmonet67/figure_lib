@@ -1,7 +1,7 @@
 import pandas as pd
 import math
 import re
-from src.data_transform.GraphColumn import GraphColumn
+from figure_lib.src.data_transform.GraphColumn import GraphColumn
 
 class GraphDF():
         @classmethod 
@@ -54,7 +54,7 @@ class GraphDF():
                         var -- type, Descr
                 -------------
                 Returns :
-                        "<class 'src.data_transform.GraphColumn.GraphColumn'>"
+                        "GraphColumn"
                 '''
                 print("---------------------------------------------")
                 print("\n### Parameters :\n  - dt = {0}s\n  - frame rate = {1}Hz\n  - Grid dimension : {2}x{3} cells".format(self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1]))
@@ -96,7 +96,7 @@ class GraphDF():
                         elif type(df) == type(self):
                                 add_df.data = self.data.join(df.data)
                                 add_df.list_col += df.list_col
-                        elif str(type(df)) == "<class 'src.data_transform.GraphColumn.GraphColumn'>":
+                        elif str(type(df)).split(".")[-1][0:-2] == "GraphColumn":
                                 add_df.data = self.data.join(df.data)
                                 add_df.list_col += [df]
                         else:
@@ -124,7 +124,7 @@ class GraphDF():
                         return self.data.equals(df.data)
                 elif type(df) == pd.DataFrame:
                         return self.data.equals(df)
-                else:
+                else:   
                         print("GraphDF should be compare to GraphDF or pd.DataFrame.")
                         return None
 
@@ -153,7 +153,7 @@ class GraphDF():
                                         test = attr.equals(attr_other)
 
                                 elif type(attr) == list:
-                                        if len(attr)==len(attr_other) and str(type(attr[0])) == "<class 'src.data_transform.GraphColumn.GraphColumn'>":
+                                        if len(attr)==len(attr_other) and str(type(attr[0])).split(".")[-1][0:-2] == "GraphColumn":
                                                 equality_list = 1
                                                 for i in range(len(attr)):
                                                         equality_list *= attr[i].equals(attr_other[i],False)
@@ -198,7 +198,7 @@ class GraphDF():
                 return GraphDF(self.data.copy(),self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
 
-        def isolate_dataframe_columns(self):
+        def isolate_dataframe_columns(self,choice=None):
                 '''
                 -------------
                 Description :  
@@ -210,15 +210,16 @@ class GraphDF():
                 Returns :
                         
                 '''
-                print("\n==================== CHOICES ====================\n")
-                for i in range(len(self.data.columns)):
-                        print("     ",i+1," - ", self.data.columns[i])
-                print("\n=================================================")
-
-                choice = input("Select your columns by their id :\n")
+                
+                if choice==None:
+                        print("\n==================== CHOICES ====================\n")
+                        for i in range(len(self.data.columns)):
+                                print("     ",i+1," - ", self.data.columns[i])
+                        print("\n=================================================")
+                        choice = input("Select your columns by their id :\n")
                 
                 select_col=[]
-                for i in choice:
+                for i in choice.split(","):
                         if re.match(r'[\d]',i) and int(i)<=len(self.data.columns) and self.data.columns[int(i)-1] not in select_col:
                                 select_col+=[self.data.columns[int(i)-1]]
 

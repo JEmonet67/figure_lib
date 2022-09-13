@@ -1,10 +1,10 @@
 import pandas as pd
-from src.get_infos.info_cell import InfoCell
+from figure_lib.src.get_infos.info_cell import InfoCell
 
 class GraphColumn():
     def __init__(self,df,n_cells_x,n_cells_y,num_col=None):
         #Condition to copy columns
-        if str(type(df))=="<class 'src.data_transform.GraphColumn.GraphColumn'>" and num_col==None:
+        if str(type(df)).split(".")[-1][0:-2]=="GraphColumn" and num_col==None:
             self.data = df.data.copy()
             self.max = df.max
             self.tmax = df.tmax
@@ -16,16 +16,17 @@ class GraphColumn():
         else:
             if type(df) == pd.DataFrame and num_col!=None:
                 self.data = df.loc[:,[df.columns[num_col]]]
-            elif str(type(df))=="<class 'src.data_transform.GraphDF.GraphDF'>" and num_col!=None:
+            elif str(type(df)).split(".")[-1][0:-2]=="GraphDF" and num_col!=None:
+            # elif str(type(df))=="<class 'src.data_transform.GraphDF.GraphDF'>" and num_col!=None:
                 self.data = df.data.loc[:,[df.data.columns[num_col]]]
             else:
                 print("{0}\n/!\/!\ data should be GraphDF or pd.DataFrame /!\/!\\".format(TypeError))
-
+            
             self.max = self.get_maximums_col()["Ymax"]
             self.tmax = self.get_maximums_col()["tmax"]
             self.name = self.data.columns[0]
             self.n_cells =(n_cells_x,n_cells_y)
-
+            
             self.cell = InfoCell(self.name, self.n_cells[0],self.n_cells[1])
 
     
@@ -91,10 +92,12 @@ class GraphColumn():
                 Give a dictionary with the maximum value of the column (Ymax), the time of this pic (tmax) and the index (i_Ymax).
         '''
         dict_max = {}
+        dict_max["Ymax"] = self.data.iloc[:,0].max()
+        dict_max["tmax"] = self.data[self.data.iloc[:,0] == dict_max["Ymax"]].index[0]
         
-        dict_max["Ymax"] = round(self.data.iloc[:,0].max(),3)
-        dict_max["tmax"] = round(self.data[self.data.iloc[:,0] == dict_max["Ymax"]].index[0],3)
-        
+        dict_max["Ymax"] = round(dict_max["Ymax"],3)
+        dict_max["tmax"] = round(dict_max["tmax"],3)
+
         return dict_max
 
     # def tmax_centering_col(self):

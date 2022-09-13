@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from src.data_transform.GraphDF import GraphDF
-from src.make_figure.curve import Curve
+from figure_lib.src.data_transform.GraphDF import GraphDF
+from figure_lib.src.make_figure.curve import Curve
 
-import src.make_figure.curve as cu
+import figure_lib.src.make_figure.curve as cu
 
 
 class Graph():
@@ -22,10 +22,12 @@ class Graph():
 
 
         self.ax.grid(color=self.dict_params_plot["grid_color"], linewidth=self.dict_params_plot["grid_width"])
-        if str(type(gdf)) == "<class 'src.data_transform.GraphDF.GraphDF'>":
+        if str(type(gdf)).split(".")[-1][0:-2] == "GraphDF":
+        # if str(type(gdf)) == "<class 'src.data_transform.GraphDF.GraphDF'>":
             self.list_curve = [cu.Curve(self.ax, self.fig, gdf.list_col[i]) for i in range(len(gdf.list_col))]
 
-        elif type(gdf) == list and str(type(gdf[0]))=="<class 'src.data_transform.GraphDF.GraphDF'>":
+        elif type(gdf) == list and str(type(gdf[0])).split(".")[-1][0:-2] == "GraphDF":
+        # elif type(gdf) == list and str(type(gdf[0]))=="<class 'src.data_transform.GraphDF.GraphDF'>":
             for elt in gdf:
                 self.list_curve = [cu.Curve(self.ax, self.fig, elt.list_col[i]) for i in range(len(elt.list_col))]
     
@@ -53,10 +55,11 @@ class Graph():
         Returns :
                 
         '''
-        if str(type(gdf)) == "<class 'src.data_transform.GraphDF.GraphDF'>":
+        if str(type(gdf)).split(".")[-1][0:-2] == "GraphDF":
+        # if str(type(gdf)) == "<class 'src.data_transform.GraphDF.GraphDF'>":
             self.list_curve += [cu.Curve(self.ax, self.fig, gdf.list_col[i]) for i in range(len(gdf.list_col))]
             self.gdf = self.gdf + gdf
-        elif str(type(gdf)) == "<class 'src.data_transform.GraphColumn.GraphColumn'>":
+        elif str(type(gdf)).split(".")[-1][0:-2] == "GraphColumn":
             self.list_curve += [cu.Curve(self.ax, self.fig, gdf)]
             self.gdf = self.gdf + gdf
         elif type(gdf) == pd.DataFrame:

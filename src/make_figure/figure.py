@@ -1,14 +1,14 @@
 import pandas as pd
 import seaborn as sns 
 import matplotlib.pyplot as plt
-from src.make_figure.curve import Curve
-from src.make_figure.graph import Graph
+# from src.make_figure.curve import Curve
+# from src.make_figure.graph import Graph
 
-import src.make_figure.curve as cu
-import src.make_figure.graph as gr
+import figure_lib.src.make_figure.curve as cu
+import figure_lib.src.make_figure.graph as gr
 
 class Figure():
-    def __init__(self, list_gdf, i, j, dimX=10, dimY=10,dict_info_fig=None, dict_font_size=None, dict_params_fig = None,dict_params_plot=None):
+    def __init__(self, list_gdf, i, j, dimX=10, dimY=10, dict_info_fig=None, dict_font_size=None, dict_params_fig=None, dict_params_plot=None):
         self.dim = (i,j)
         self.list_gdf = list_gdf
 
@@ -50,11 +50,11 @@ class Figure():
                     else:
                         raise IndexError
                 elif self.dim[0]==1 and self.dim[1]!=1:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k%self.dim[1]], self.list_gdf[k],dict_font_size=self.dict_font_size,dict_params_plot=dict_params_plot)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k%self.dim[1]], self.list_gdf[k],dict_params_plot=dict_params_plot, dict_font_size=self.dict_font_size)]
                 elif self.dim[0]!=1 and self.dim[1]==1:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]], self.list_gdf[k],self.dict_font_size,dict_font_size=self.dict_font_size,dict_params_plot=dict_params_plot)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]], self.list_gdf[k],dict_params_plot=dict_params_plot, dict_font_size=self.dict_font_size)]
                 else:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]][k%self.dim[1]], self.list_gdf[k],dict_font_size=self.dict_font_size,dict_params_plot=dict_params_plot)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]][k%self.dim[1]], self.list_gdf[k], dict_params_plot=dict_params_plot, dict_font_size=self.dict_font_size)]
         
         except IndexError:
             print("{0}\n/!\/!\ Graph dimension doesn't match with pd.DataFrames dimensions /!\/!\\".format(IndexError))
@@ -134,6 +134,9 @@ class Figure():
                 else:
                     for i in range(len(subtitles)):
                         self.list_graph[i].ax.set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
+            elif subtitles=="":
+                for i in range(len(subtitles)):
+                    self.list_graph[i].ax.set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
             else:
                 print("{0}\n/!\/!\ Subtitles names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
@@ -158,16 +161,18 @@ class Figure():
             if type(xlabel)==list and [True for i in range(len(xlabel)) if type(xlabel[i])==str] == [True]*len(xlabel):
                 if len(xlabel)==1:
                     for i in range(len(self.list_graph)):
-                        self.list_graph[i].ax.set(xlabel=xlabel[0])
+                        self.list_graph[i].ax.set_xlabel(xlabel=xlabel[0], fontsize=self.dict_font_size["xlabel"])
                 elif len(xlabel)<len(self.list_graph):
                     print("{0}\n/!\/!\ Number of X labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
+                    
                     for i in range(len(xlabel)):
-                        self.list_graph[i].ax.set(xlabel=xlabel[i])
+                        self.list_graph[i].ax.set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"])
             elif type(xlabel)==str:
                 for i in range(len(self.list_graph)):
                     self.list_graph[i].ax.set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"])
             else:
+                
                 print("{0}\n/!\/!\ X labels names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
             pass
@@ -177,12 +182,12 @@ class Figure():
             if type(ylabel)==list and [True for i in range(len(ylabel)) if type(ylabel[i])==str] == [True]*len(ylabel):
                 if len(ylabel)==1:
                     for i in range(len(self.list_graph)):
-                        self.list_graph[i].ax.set(ylabel=ylabel[0])
+                        self.list_graph[i].ax.set_ylabel(ylabel=ylabel[0],fontsize=self.dict_font_size["ylabel"])
                 elif len(ylabel)<len(self.list_graph):
                     print("{0}\n/!\/!\ Number of Y labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(ylabel)):
-                        self.list_graph[i].ax.set(ylabel=ylabel[i])
+                        self.list_graph[i].ax.set_ylabel(ylabel=ylabel[i],fontsize=self.dict_font_size["ylabel"])
             elif type(ylabel)==str:
                 for i in range(len(self.list_graph)):
                     self.list_graph[i].ax.set_ylabel(ylabel=ylabel,fontsize=self.dict_font_size["ylabel"])

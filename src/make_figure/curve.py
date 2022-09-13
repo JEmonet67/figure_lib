@@ -4,7 +4,7 @@ class Curve():
     def __init__(self, ax, fig, col, lw=4, ls="-"):
         self.col = col
 
-        if str(type(col))=="<class 'src.data_transform.GraphColumn.GraphColumn'>":
+        if str(type(col)).split(".")[-1][0:-2]=="GraphColumn":
             self.plot = ax.plot(self.col.name,data=self.col.data, lw=lw, ls=ls)    
             self.legend = "{0} ({1};{2})".format(col.cell.type,col.cell.coord["X"],col.cell.coord["Y"])
 
