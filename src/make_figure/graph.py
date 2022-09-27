@@ -28,9 +28,8 @@ class Graph():
 
         elif type(gdf) == list and str(type(gdf[0])).split(".")[-1][0:-2] == "GraphDF":
         # elif type(gdf) == list and str(type(gdf[0]))=="<class 'src.data_transform.GraphDF.GraphDF'>":
-            for elt in gdf:
-                self.list_curve = [cu.Curve(self.ax, self.fig, elt.list_col[i]) for i in range(len(elt.list_col))]
-    
+            self.list_curve = [cu.Curve(self.ax, self.fig, gdf[i].list_col[0]) for i in range(len(gdf))]
+
         try:
             self.ax.tick_params(axis="x", which="both", labelsize=dict_font_size["g_xticklabel"], color="black", length=self.dict_params_plot["ticklength"], width=self.dict_params_plot["tickwidth"])
             self.ax.tick_params(axis="y", which="both", labelsize=dict_font_size["g_yticklabel"], color="black", length=self.dict_params_plot["ticklength"], width=self.dict_params_plot["tickwidth"])
@@ -124,13 +123,13 @@ class Graph():
                 
         '''
         if xmin==None:
-            ymin=self.data.index.min()
+            ymin=self.gdf.data.index.min()
         if xmax==None:
-            ymin=self.data.index.max()
+            ymin=self.gdf.data.index.max()
         if ymin==None:
-            ymin=self.data.min().min()-5
+            ymin=self.gdf.data.min().min()-5
         if ymax==None:
-            ymax=self.data.max().max()+5
+            ymax=self.gdf.data.max().max()+5
 
         self.ax.set_xlim(xmin,xmax)
         self.ax.set_ylim(ymin,ymax)

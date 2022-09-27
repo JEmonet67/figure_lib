@@ -338,13 +338,23 @@ class GraphDF():
                 Returns :
                         Return a list containing all DataFrame columns centered on pic.
                 '''
-                df_centered=[self.copy()]*len(self.list_col)
+                # li=[]
+                # for i in range(len(self.list_col)):
+                #         li+=[self.isolate_dataframe_columns(str(i))]
+                df_centered=[self.isolate_dataframe_columns(str(i)) for i in range(len(self.list_col))]
+                # print(df_centered, len(df_centered))
+                # df_centered=[self.copy()]*len(self.list_col)
+                # print(df_centered)
 
                 for i in range(len(self.list_col)):
+                        # print(i, "===>", self.list_col[i].name)
                         centered_col = self.list_col[i].tmax_centering_col()
+                        # print(df_centered)
                         df_centered[i].data = centered_col.data
+                        # print("###", df_centered)
+
                         df_centered[i].list_col = [centered_col]
-                
+
                 return df_centered
 
 
