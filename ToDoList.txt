@@ -1,4 +1,7 @@
 
+    Module Data : 
+- Ajouter un moyen de sélectionner et trier les colonnes par nom de variables, ligne ou colonne.
+
 	Module Graphes :
 - Ajouter fonction pour tracer flèche ou trait avec texte dans les figures.
 

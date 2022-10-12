@@ -26,7 +26,6 @@ class GraphColumn():
             self.tmax = self.get_maximums_col()["tmax"]
             self.name = self.data.columns[0]
             self.n_cells =(n_cells_x,n_cells_y)
-            
             self.cell = InfoCell(self.name, self.n_cells[0],self.n_cells[1])
 
     

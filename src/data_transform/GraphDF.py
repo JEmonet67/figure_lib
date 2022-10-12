@@ -198,7 +198,7 @@ class GraphDF():
                 return GraphDF(self.data.copy(),self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
 
-        def isolate_dataframe_columns(self,choice=None):
+        def isolate_dataframe_bytype(self,choice=None):
                 '''
                 -------------
                 Description :  
@@ -213,15 +213,162 @@ class GraphDF():
                 
                 if choice==None:
                         print("\n==================== CHOICES ====================\n")
-                        for i in range(len(self.data.columns)):
-                                print("     ",i+1," - ", self.data.columns[i])
+                        list_todisplay = []
+                        for i in range(len(self.list_col)):
+                                col = self.list_col[i]
+                                if col.cell.type not in list_todisplay:
+                                        list_todisplay += [col.cell.type]
+                                        print(f"     -{col.cell.type}")
                         print("\n=================================================")
                         choice = input("Select your columns by their id :\n")
                 
                 select_col=[]
-                for i in choice.split(","):
-                        if re.match(r'[\d]',i) and int(i)<=len(self.data.columns) and self.data.columns[int(i)-1] not in select_col:
-                                select_col+=[self.data.columns[int(i)-1]]
+                list_nametype = []
+                for nametype in choice.replace(" ","").split(","):
+                        if nametype not in list_nametype:
+                                list_nametype += [nametype]
+                                for col in self.list_col:
+                                        if  nametype==col.cell.type:
+                                                select_col+=[col.name]
+
+                new_gdf = GraphDF(self.data.loc[:,select_col],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
+
+                return new_gdf.sort_by_cell_number()
+
+        def isolate_dataframe_byoutputs(self,choice=None):
+                '''
+                -------------
+                Description :  
+                        
+                -------------
+                Arguments :
+                        var -- type, Descr
+                -------------
+                Returns :
+                        
+                '''
+                
+                if choice==None:
+                        print("\n==================== CHOICES ====================\n")
+                        list_todisplay = []
+                        for i in range(len(self.list_col)):
+                                col = self.list_col[i]
+                                if col.cell.output not in list_todisplay:
+                                        list_todisplay += [col.cell.output]
+                                        print(f"     -{col.cell.output}")
+                        print("\n=================================================")
+                        choice = input("Select your columns by their id :\n")
+                
+                select_col=[]
+                list_name_output = []
+                for name_output in choice.replace(" ","").split(","):
+                        if name_output not in list_name_output:
+                                list_name_output += [name_output]
+                                for col in self.list_col:
+                                        if  name_output==col.cell.output:
+                                                select_col+=[col.name]
+
+                new_gdf = GraphDF(self.data.loc[:,select_col],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
+
+                return new_gdf.sort_by_cell_number()
+
+        def isolate_dataframe_columns_bynum(self,choice=None):
+                '''
+                -------------
+                Description :  
+                        
+                -------------
+                Arguments :
+                        var -- type, Descr
+                -------------
+                Returns :
+                        
+                '''
+                
+                if choice==None:
+                        print("\n==================== CHOICES ====================\n")
+                        for i in range(len(self.list_col)):
+                                col = self.list_col[i]
+                                X = col.cell.coord["X"]
+                                Y = col.cell.coord["Y"]
+                                Z = col.cell.coord["Z"]
+                                print(f"     {col.name}  :  ({X},{Y},{Z})")
+                        print("\n=================================================")
+                        choice = input("Select your columns by their id :\n")
+                
+                select_col=[]
+                for i in choice.replace(" ","").split(","):
+                        for col in self.list_col:
+                                if col.cell.num == int(i) and col.name not in select_col:
+                                        select_col+=[col.name]
+
+                new_gdf = GraphDF(self.data.loc[:,select_col],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
+
+                return new_gdf.sort_by_cell_number()
+
+
+        # def isolate_dataframe_columns_bycoord(self,choice=None):
+        #         '''
+        #         -------------
+        #         Description :  
+                        
+        #         -------------
+        #         Arguments :
+        #                 var -- type, Descr
+        #         -------------
+        #         Returns :
+                        
+        #         '''
+                
+        #         if choice==None:
+        #                 print("\n==================== CHOICES ====================\n")
+        #                 for i in range(len(self.list_col)):
+        #                         col = self.list_col[i]
+        #                         X = col.cell.coord["X"]
+        #                         Y = col.cell.coord["Y"]
+        #                         Z = col.cell.coord["Z"]
+        #                         print(f"     {col.name}  :  ({X},{Y},{Z})")
+        #                 print("\n=================================================")
+        #                 choice = input("Select your columns by their id :\n")
+                
+        #         select_col=[]
+        #         for i in choice.replace(" ","").split(","):
+        #                 if re.match(r'^(\d){1,4}$',i) and int(i)<=len(self.list_col) and self.list_col[int(i)-1].name not in select_col:
+        #                         select_col+=[self.data.columns[int(i)-1]]
+
+        #         new_gdf = GraphDF(self.data.loc[:,select_col],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
+
+        #         return new_gdf.sort_by_cell_number()
+
+
+        def isolate_dataframe_columns_byidx(self,choice=None):
+                '''
+                -------------
+                Description :  
+                        
+                -------------
+                Arguments :
+                        var -- type, Descr
+                -------------
+                Returns :
+                        
+                '''
+                
+                if choice==None:
+                        print("\n==================== CHOICES ====================\n")
+                        for i in range(len(self.list_col)):
+                                col = self.list_col[i]
+                                X = col.cell.coord["X"]
+                                Y = col.cell.coord["Y"]
+                                Z = col.cell.coord["Z"]
+                                print(f"     {i+1} - {col.name}  :  ({X},{Y},{Z})")
+                        print("\n=================================================")
+                        choice = input("Select your columns by their id :\n")
+                
+                select_col=[]
+                for i in choice.replace(" ","").split(","):
+                        if re.match(r'^(\d){1,3}$',i) and int(i)<=len(self.list_col) and self.list_col[int(i)-1].name not in select_col:
+                                select_col+=[self.list_col[int(i)-1].name]
 
                 new_gdf = GraphDF(self.data.loc[:,select_col],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
 
@@ -247,7 +394,8 @@ class GraphDF():
                         if isinstance(Xmin,float) or isinstance(Xmin,int) and isinstance(Xmax,float) or isinstance(Xmax,int) and Xmin<Xmax:  
                                 gdf = self.copy()
                                 gdf.data = self.data[(self.data.index>=Xmin)&(self.data.index<=Xmax)]
-
+                                gdf.data.index = gdf.data.index - gdf.data.index[0]
+                                
                                 return gdf
                                 
                 except (TypeError, ValueError):
@@ -285,15 +433,36 @@ class GraphDF():
                 '''
                 data_sort = pd.DataFrame()
 
-                dict_col = {re.search(r'[\d]{4}',name)[0]:self.data.loc[:,[name]] for name in self.data.columns if re.search(r'[\d]{4}',name)!=None}
-                list_numbers = [key for key in dict_col]
+                dict_col = {}
+                for name in self.data.columns:
+                        if re.search(r'[\d]{1,4}',name)!=None:
+                                if re.search(r'[\d]{1,4}',name)[0] not in dict_col:
+                                        dict_col[re.search(r'[\d]{1,4}',name)[0]] = [self.data.loc[:,[name]]]
+                                else:
+                                        dict_col[re.search(r'[\d]{1,4}',name)[0]] = dict_col[re.search(r'[\d]{1,4}',name)[0]] + [self.data.loc[:,[name]]]
+
+
+                # dict_col = {re.search(r'[\d]{1,4}',name)[0]:self.data.loc[:,[name]] for name in self.data.columns if re.search(r'[\d]{1,4}',name)!=None}
+                list_numbers = [int(key) for key in dict_col]
                 list_numbers.sort()
 
                 for number in list_numbers:
                         if data_sort.equals(pd.DataFrame()):
-                                data_sort = dict_col[number]
+                                if len(dict_col[str(number)]) > 1:
+                                        data_sort = dict_col[str(number)][0]
+                                        for i_col in range(1,len(dict_col[str(number)])):
+                                                data_sort = data_sort.join(dict_col[str(number)][i_col])
+                                else:
+                                        data_sort = dict_col[str(number)][0]
+
                         else:
-                                data_sort = data_sort.join(dict_col[number])
+                                if len(dict_col[str(number)]) > 1:
+                                        for i_col in range(len(dict_col[str(number)])):
+                                                data_sort = data_sort.join(dict_col[str(number)][i_col])
+
+                                else:
+                                        data_sort = data_sort.join(dict_col[str(number)][0])
+                                # data_sort = data_sort.join(dict_col[str(number)])
 
                 return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
