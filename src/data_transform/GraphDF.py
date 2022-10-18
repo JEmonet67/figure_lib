@@ -17,7 +17,7 @@ class GraphDF():
                 Returns :
                         
                 '''
-                df.loc[:,"Time"] = df.loc[:,"Time"]*frame_rate*dt 
+                #df.loc[:,"Time"] = df.loc[:,"Time"]*frame_rate*dt 
                 df = df.set_index("Time")
                 
                 return df
@@ -374,7 +374,7 @@ class GraphDF():
 
                 return new_gdf.sort_by_cell_number()
 
-        def crop(self,Xmin,Xmax):
+        def crop(self,Xmin,Xmax=-1):
                 '''
                 -------------
                 Description :  
@@ -389,7 +389,8 @@ class GraphDF():
                 Returns :
                         Give a cropped DataFrame contening Time column and the input column.
                 '''
-
+                if Xmax ==-1:
+                        Xmax = self.data.index[-1]
                 try:
                         if isinstance(Xmin,float) or isinstance(Xmin,int) and isinstance(Xmax,float) or isinstance(Xmax,int) and Xmin<Xmax:  
                                 gdf = self.copy()
@@ -418,6 +419,36 @@ class GraphDF():
     #     else:
     #         print("Wrong Xmin or Xmax values")
 
+
+        def isolate_dataframe_rows_byname(self,choice=None):
+                '''
+                -------------
+                Description :  
+                        
+                -------------
+                Arguments :
+                        var -- type, Descr
+                -------------
+                Returns :
+                        
+                '''
+                
+                if choice==None:
+                        print("\n==================== CHOICES ====================\n")
+                        for i in self.data.index:
+                                print(f"     {i}")
+                        print("\n=================================================")
+                        choice = input("Select your rows by their name :\n")
+                
+                select_row=[]
+                for i in choice.replace(" ","").split(","):
+                        for row in self.data.index:
+                                if row == float(i) and row not in select_row:
+                                        select_row+=[row]
+
+                new_gdf = GraphDF(self.data.loc[select_row],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
+
+                return new_gdf.sort_by_cell_number()
         
         def sort_by_cell_number(self):
                 '''
