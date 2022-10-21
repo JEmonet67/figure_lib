@@ -1,11 +1,13 @@
 import pandas as pd
+import numpy as np
 import math
 import re
 from figure_lib.src.data_transform.GraphColumn import GraphColumn
+from figure_lib.src.data_transform.matrix2D import matrix2D
 
 class GraphDF():
         @classmethod 
-        def preparation(cls, df, dt, frame_rate=60):
+        def preparation(cls, df):
                 '''
                 -------------
                 Description :  
@@ -28,9 +30,9 @@ class GraphDF():
                 self.n_cells = (n_cells_x,n_cells_y)
                 try:
                         if type(df)==str:
-                                self.data = self.preparation(pd.read_csv(df),self.dt,self.frame_rate)
+                                self.data = self.preparation(pd.read_csv(df))
                         elif type(df)==pd.DataFrame:
-                                self.data = self.preparation(df,self.dt,self.frame_rate)
+                                self.data = self.preparation(df)
                         else:
                                 raise TypeError("/!\/!\ Path must be a str or a pd.DataFrame /!\/!\\")
                 except KeyError:
@@ -402,23 +404,6 @@ class GraphDF():
                 except (TypeError, ValueError):
                         print("/!\/!\ Wrong Xmin or Xmax values /!\/!\\")
 
-    # def crop_seuil(self,Xmin,Xmax, seuil=0):
-    #     if str(Xmax).upper()=="SEUIL":
-    #         for colonne in self.data.columns:
-    #             df_col=self.data.loc[:,[colonne]]
-
-    #             serie_col = df_col.iloc[:,0]
-    #             min_df=df_col[df_col.index>=Xmin]
-    #             Xmin=min_df.iloc[[0],[0]].index[0]
-    #             inflex_serie = serie_col[serie_col<seuil]
-    #             inflex_X = inflex_serie.iloc[[inflex_serie.shape[0]-1]].index[0]
-    #             df_col=df_col.iloc[Xmin:inflex_X,[0,1]]
-
-    #             self.data.loc[:,colonne] = df_col[:,colonne]
-
-    #     else:
-    #         print("Wrong Xmin or Xmax values")
-
 
         def isolate_dataframe_rows_byname(self,choice=None):
                 '''
@@ -498,33 +483,6 @@ class GraphDF():
                 return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
 
-                # def sort_by_cell_number(self):
-                # '''
-                # -------------
-                # Description :  
-                        
-                # -------------
-                # Arguments :
-                #         var -- type, Descr
-                # -------------
-                # Returns :
-                        
-                # '''
-                # data_sort = pd.DataFrame()
-
-                # dict_col = {re.search(r'[\d]{4}',name)[0]:self.data.loc[:,[name]] for name in self.data.columns if re.search(r'[\d]{4}',name)!=None}
-                # list_numbers = [key for key in dict_col]
-                # list_numbers.sort()
-
-                # for number in list_numbers:
-                #         if data_sort.equals(pd.DataFrame()):
-                #                 data_sort = dict_col[number]
-                #         else:
-                #                 data_sort = data_sort.join(dict_col[number])
-
-                # return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
-
-
         def tmax_centering_df(self):
                 '''
                 -------------
@@ -542,28 +500,41 @@ class GraphDF():
                 # for i in range(len(self.list_col)):
                 #         li+=[self.isolate_dataframe_columns(str(i))]
                 df_centered=[self.isolate_dataframe_columns(str(i)) for i in range(len(self.list_col))]
-                # print(df_centered, len(df_centered))
                 # df_centered=[self.copy()]*len(self.list_col)
-                # print(df_centered)
 
                 for i in range(len(self.list_col)):
-                        # print(i, "===>", self.list_col[i].name)
                         centered_col = self.list_col[i].tmax_centering_col()
-                        # print(df_centered)
                         df_centered[i].data = centered_col.data
-                        # print("###", df_centered)
 
                         df_centered[i].list_col = [centered_col]
 
                 return df_centered
 
+        def row_to_2Dmatrix(self, i_row):
+                row = self.data.iloc[i_row]
+                t = round(self.data.iloc[i_row].name,4)
 
-        # def add_theoretical_data(self, function):
-        #         if type(function)==str:
-        #                 self.data =
-        #                 self.list_col =
-        #         else:
-        #                 print("{0}\n/!\/!\ Theoretical data function have to be str /!\/!\\".format(TypeError))
+                x = [round(i,2) for i in np.linspace(20,0,20)]
+                y = [round(i,2) for i in np.linspace(0,20,20)]
+
+                df2D=pd.DataFrame(0,index=x,columns=y)
+                df2D.index.name = "Y"
+                df2D.columns.name = "X"
+
+                for x in range(self.n_cells[0]):
+                        for y in range(self.n_cells[1]):
+                                df2D.iloc[self.n_cells[1]-1-y,x] = row.iloc[self.n_cells[0]*x+y]
+
+                mtx2D = matrix2D(df2D,t)
+                
+                return mtx2D
+
+        def export_rows_to_2DmatrixList(self):
+                list_2Dmatrix = []
+                for i_row in range(self.data.shape[0]):
+                        list_2Dmatrix += [self.row_to_2Dmatrix(i_row)]
+
+                return list_2Dmatrix
     
 
 
