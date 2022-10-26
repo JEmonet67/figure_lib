@@ -9,8 +9,8 @@ import figure_lib.src.make_figure.graph as gr
 from figure_lib.src.make_figure.figure import Figure
 
 class graphFigure(Figure):
-    def __init__(self, list_data, i=1, j=1, sizeX=10, sizeY=10, dict_info_fig=None, dict_font_size=None, dict_params_fig=None, dict_params_plot=None):
-        super().__init__(list_data, i, j, sizeX, sizeY, dict_info_fig, dict_font_size, dict_params_fig, dict_params_plot)
+    def __init__(self, list_data, dimX=-1, dimY=-1, sizeX=10, sizeY=10, dict_info_fig=None, dict_font_size=None, dict_params_fig=None, dict_params_plot=None):
+        super().__init__(list_data, dimX, dimY, sizeX, sizeY, dict_info_fig, dict_font_size, dict_params_fig, dict_params_plot)
         
         if self.dim[0]*self.dim[1] > len(self.list_data):
             print("Warning : Graph dimension is superior to dataframes dimensions")

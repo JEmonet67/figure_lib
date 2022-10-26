@@ -3,7 +3,7 @@ import numpy as np
 import math
 import re
 from figure_lib.src.data_transform.GraphColumn import GraphColumn
-from figure_lib.src.data_transform.matrix2D import matrix2D
+from figure_lib.src.data_transform.listMatrix2D import listMatrix2D
 
 class GraphDF():
         @classmethod 
@@ -517,24 +517,26 @@ class GraphDF():
                 x = [round(i,2) for i in np.linspace(20,0,20)]
                 y = [round(i,2) for i in np.linspace(0,20,20)]
 
-                df2D=pd.DataFrame(0,index=x,columns=y)
-                df2D.index.name = "Y"
-                df2D.columns.name = "X"
+                mtx2D=pd.DataFrame(0,index=x,columns=y)
+                mtx2D.index.name = "Y"
+                mtx2D.columns.name = "X"
 
                 for x in range(self.n_cells[0]):
                         for y in range(self.n_cells[1]):
-                                df2D.iloc[self.n_cells[1]-1-y,x] = row.iloc[self.n_cells[0]*x+y]
-
-                mtx2D = matrix2D(df2D,t)
+                                mtx2D.iloc[self.n_cells[1]-1-y,x] = row.iloc[self.n_cells[0]*x+y]
                 
-                return mtx2D
+                return mtx2D, t
 
         def export_rows_to_2DmatrixList(self):
                 list_2Dmatrix = []
+                list_t = []
+                max_value = self.data.max().max()
                 for i_row in range(self.data.shape[0]):
-                        list_2Dmatrix += [self.row_to_2Dmatrix(i_row)]
+                        mtxt2D,t = self.row_to_2Dmatrix(i_row)
+                        list_2Dmatrix += [mtxt2D]
+                        list_t += [t]
 
-                return list_2Dmatrix
+                return list_2Dmatrix, max_value, list_t 
     
 
 

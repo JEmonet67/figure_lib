@@ -1,4 +1,6 @@
+from email.policy import default
 import pandas as pd
+import numpy as np
 import seaborn as sns 
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -7,9 +9,17 @@ from abc import ABC, abstractmethod
 
 
 class Figure(ABC):
-    def __init__(self, list_data, i, j, sizeX=10, sizeY=10, dict_info_fig=None, dict_font_size=None, dict_params_fig=None, dict_params_plot=None):
+    def __init__(self, list_data, dimX, dimY, sizeX=10, sizeY=10, dict_info_fig=None, dict_font_size=None, dict_params_fig=None, dict_params_plot=None):
         self.list_data = list_data
-        self.dim = (i,j)
+
+        if dimX==-1 or dimY==-1:
+            default_dimX, default_dimY = self.set_default_number_of_plots(dimX,dimY)
+        if dimX ==-1:
+            dimX=default_dimX
+        if dimY == -1:
+            dimY=default_dimY
+
+        self.dim = (dimX,dimY)
         self.size = (sizeX, sizeY)
 
         if type(dict_info_fig)==dict:
@@ -38,6 +48,7 @@ class Figure(ABC):
 
         self.fig,self.ax = plt.subplots(self.dim[0], self.dim[1], figsize = (self.size[0],self.size[1]),
         sharex=self.dict_info_fig["sharex"],sharey=self.dict_info_fig["sharey"],gridspec_kw=self.dict_params_fig)
+        self.list_ax = self.ax.reshape(self.dim[0]*self.dim[1]).tolist()
         
         
 
@@ -45,6 +56,23 @@ class Figure(ABC):
     @abstractmethod
     def set_plot(self):
         pass
+    
+    def set_default_number_of_plots(self,dimX=-1,dimY=-1):
+        l = len(self.list_data)
+        if dimY==-1 and dimX!=-1:
+            dimY = int(np.ceil(l/dimX))
+
+        if dimX==-1 and dimY!=-1:
+            dimX = int(np.ceil(l/dimY))
+
+        if dimY==-1 and dimX==-1:
+            if l>=3:
+                dimY = 3
+            else:
+                dimY = l%3
+            dimX = int(np.ceil(l/dimY))
+        
+        return (dimX,dimY)
 
 
     def set_titles(self):
@@ -72,18 +100,22 @@ class Figure(ABC):
         try:
             subtitles = self.dict_info_fig["subtitles"]
             if type(subtitles)==list and [True for i in range(len(subtitles)) if type(subtitles[i])==str] == [True]*len(subtitles):
-                if len(subtitles)<len(self.list_graph):
+                # if len(subtitles)<len(self.list_graph):
+                if len(subtitles)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of subfigures titles inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(subtitles)):
-                        self.list_graph[i].ax.set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
+                        self.list_ax[i].set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
+                        # self.list_graph[i].ax.set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
             elif subtitles=="":
                 for i in range(len(subtitles)):
-                    self.list_graph[i].ax.set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
+                    self.list_ax[i].set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
+                    # self.list_graph[i].ax.set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
             else:
                 print("{0}\n/!\/!\ Subtitles names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
             pass
+
 
 
     def set_labels(self):
@@ -103,17 +135,17 @@ class Figure(ABC):
             xlabel = self.dict_info_fig["xlabel"]
             if type(xlabel)==list and [True for i in range(len(xlabel)) if type(xlabel[i])==str] == [True]*len(xlabel):
                 if len(xlabel)==1:
-                    for i in range(len(self.list_graph)):
-                        self.list_graph[i].ax.set_xlabel(xlabel=xlabel[0], fontsize=self.dict_font_size["xlabel"])
-                elif len(xlabel)<len(self.list_graph):
+                    for i in range(len(self.list_ax)):
+                        self.list_ax[i].set_xlabel(xlabel=xlabel[0], fontsize=self.dict_font_size["xlabel"])
+                elif len(xlabel)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of X labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     
                     for i in range(len(xlabel)):
-                        self.list_graph[i].ax.set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"])
+                        self.list_ax[i].set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"])
             elif type(xlabel)==str:
-                for i in range(len(self.list_graph)):
-                    self.list_graph[i].ax.set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"])
+                for i in range(len(self.list_ax)):
+                    self.list_ax[i].set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"])
             else:
                 
                 print("{0}\n/!\/!\ X labels names have to be a list of str /!\/!\\".format(TypeError))
@@ -124,16 +156,16 @@ class Figure(ABC):
             ylabel = self.dict_info_fig["ylabel"]
             if type(ylabel)==list and [True for i in range(len(ylabel)) if type(ylabel[i])==str] == [True]*len(ylabel):
                 if len(ylabel)==1:
-                    for i in range(len(self.list_graph)):
-                        self.list_graph[i].ax.set_ylabel(ylabel=ylabel[0],fontsize=self.dict_font_size["ylabel"])
-                elif len(ylabel)<len(self.list_graph):
+                    for i in range(len(self.list_ax)):
+                        self.list_ax[i].set_ylabel(ylabel=ylabel[0],fontsize=self.dict_font_size["ylabel"])
+                elif len(ylabel)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of Y labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(ylabel)):
-                        self.list_graph[i].ax.set_ylabel(ylabel=ylabel[i],fontsize=self.dict_font_size["ylabel"])
+                        self.list_ax[i].set_ylabel(ylabel=ylabel[i],fontsize=self.dict_font_size["ylabel"])
             elif type(ylabel)==str:
-                for i in range(len(self.list_graph)):
-                    self.list_graph[i].ax.set_ylabel(ylabel=ylabel,fontsize=self.dict_font_size["ylabel"])
+                for i in range(len(self.list_ax)):
+                    self.list_ax[i].set_ylabel(ylabel=ylabel,fontsize=self.dict_font_size["ylabel"])
             else:
                 print("{0}\n/!\/!\ Y labels names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
