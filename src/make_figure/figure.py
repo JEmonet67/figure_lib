@@ -48,7 +48,10 @@ class Figure(ABC):
 
         self.fig,self.ax = plt.subplots(self.dim[0], self.dim[1], figsize = (self.size[0],self.size[1]),
         sharex=self.dict_info_fig["sharex"],sharey=self.dict_info_fig["sharey"],gridspec_kw=self.dict_params_fig)
-        self.list_ax = self.ax.reshape(self.dim[0]*self.dim[1]).tolist()
+        if str(type(self.ax))=="<class 'numpy.ndarray'>":
+            self.list_ax = self.ax.reshape(self.dim[0]*self.dim[1]).tolist()
+        else:
+            self.list_ax = [self.ax]
         
         
 

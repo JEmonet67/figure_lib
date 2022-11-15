@@ -1,11 +1,12 @@
 import pandas as pd
 
 class listMatrix2D():
-        def __init__(self, list_df, max_value, list_t=None):
+        def __init__(self, list_df, list_t, min_value, max_value):
                 if len(list_df) == len(list_t):
                         self.data = list_df
                         self.t = list_t
                         self.max_value = max_value
+                        self.min_value = min_value
                 else:
                         print(f"{ValueError}\n/!\/!\ : Le nombre de DataFrame ({len(list_df)}) ne correspond pas au nombre de pas de temps ({len(list_t)}) /!\/!\\")
 
@@ -28,6 +29,7 @@ class listMatrix2D():
                 else:
                         print(f" - dim = {len(self)} heatmap of {self.data[0].shape}")
                 print(f" - max = {self.max_value}")
+                print(f" - min = {self.min_value}")
                 #display(self.data)
                 return ""
 

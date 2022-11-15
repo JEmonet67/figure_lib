@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import seaborn as sns
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -20,18 +21,14 @@ class heatMapFigure(Figure):
     # def __repr__(self):
 
 
-    def set_one_plot(self, df, ax_plot, max_value):
+    def set_one_plot(self, df, ax_plot, min_value, max_value, col_map):
         # plt.clf()
-        plot = sns.heatmap(df,vmin=0,vmax=max_value,cbar_kws={'label': r"Firing Rate"},cmap="Greens_r",ax=ax_plot) 
+        plot = sns.heatmap(df,vmin=min_value,vmax=max_value,cbar_kws={'label': r"Firing Rate"},cmap=col_map,ax=ax_plot) 
         ax_plot.set_facecolor('black')
         [ax_plot.spines[side].set_visible(True) for side in ax_plot.spines]
         [ax_plot.spines[side].set_linewidth(2) for side in ax_plot.spines]
         ax_plot.tick_params(axis="x", which="both", labelsize=self.dict_font_size["xlabel"], color="black", length=self.dict_params_plot["ticklength"], width=self.dict_params_plot["tickwidth"])
         ax_plot.tick_params(axis="y", which="both", labelsize=self.dict_font_size["ylabel"], color="black", length=self.dict_params_plot["ticklength"], width=self.dict_params_plot["tickwidth"])
-        
-        # plt.title(f"Firing rate of excitatory cells for conduction speed of {VC} mm/s",fontsize=25,fontweight="bold",pad=30)
-        # plt.xlabel(r"Position X (mm)",fontsize=25,labelpad=15)
-        # plt.ylabel(r"Position Y (mm)",fontsize=25,labelpad=15)
 
         return plot
     
@@ -47,7 +44,11 @@ class heatMapFigure(Figure):
             self.fig = self.list_fig[t_ind]
             self.fig,self.ax = plt.subplots(self.dim[0], self.dim[1], figsize = (self.size[0],self.size[1]),
             sharex=self.dict_info_fig["sharex"],sharey=self.dict_info_fig["sharey"],gridspec_kw=self.dict_params_fig)
-            self.list_ax = self.ax.reshape(self.dim[0]*self.dim[1]).tolist()
+            if type(self.ax) == np.ndarray:
+                self.list_ax = self.ax.reshape(self.dim[0]*self.dim[1]).tolist()
+            else:
+                self.list_ax = [self.ax]
+
             for i in range(len(self.list_data)):
                 data = self.list_data[i][str(t)]
                 ax_plot = self.list_ax[i]
@@ -58,14 +59,20 @@ class heatMapFigure(Figure):
                 # else:
                 #     ax_plot = self.ax[i//self.dim[1]][i%self.dim[1]]
                 # display(data)
-                self.list_plot += [self.set_one_plot(data, ax_plot, self.list_data[i].max_value)]
+                if type(self.dict_params_plot["col_map"]) == list and len(self.dict_params_plot["col_map"])>1:
+                    col_map = self.dict_params_plot["col_map"][i]
+                elif type(self.dict_params_plot["col_map"]) == list and len(self.dict_params_plot["col_map"])==1:
+                    col_map = self.dict_params_plot["col_map"][0]
+                else:
+                    col_map = self.dict_params_plot["col_map"]
+                self.list_plot += [self.set_one_plot(data, ax_plot, self.list_data[i].min_value, self.list_data[i].max_value, col_map)]
             plt.text(-5.2,-0.5, f"{t:.4f} s", c="black", weight="bold")
             self.set_titles()
             self.set_labels()
 
             self.list_fig[t_ind] = self.fig
             if type(path_save==str):
-                self.fig.savefig(f"{path_save}/{t}.png")
+                self.fig.savefig(f"{path_save}/t{t_ind}.png",bbox_inches = 'tight')
             #plt.clf()
             plt.close()
                 

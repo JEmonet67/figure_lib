@@ -531,12 +531,13 @@ class GraphDF():
                 list_2Dmatrix = []
                 list_t = []
                 max_value = self.data.max().max()
+                min_value = self.data.min().min()
                 for i_row in range(self.data.shape[0]):
                         mtxt2D,t = self.row_to_2Dmatrix(i_row)
                         list_2Dmatrix += [mtxt2D]
                         list_t += [t]
 
-                return list_2Dmatrix, max_value, list_t 
+                return list_2Dmatrix, list_t, min_value, max_value
     
 
 
