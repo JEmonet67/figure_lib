@@ -36,23 +36,56 @@ class graphFigure(Figure):
         self.list_graph = []
         try:
             for k in range(len(self.list_data)):
+                dict_params_plot_copy = self.dict_params_plot.copy()
+                dict_params_plot_copy["plots_color"] = dict_params_plot_copy["plots_color"][k]
                 coord = (k//self.dim[1],k%self.dim[1])
                 if self.dim[0]==1 and self.dim[1]==1:
                     if len(self.list_data)==1:
-                        self.list_graph += [gr.Graph(self.fig, self.ax, self.list_data[k])]
+                        self.list_graph += [gr.Graph(self.fig, self.ax, self.list_data[k],dict_params_plot=dict_params_plot_copy, dict_font_size=self.dict_font_size)]
                     else:
                         raise IndexError
                 elif self.dim[0]==1 and self.dim[1]!=1:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k%self.dim[1]], self.list_data[k],dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k%self.dim[1]], self.list_data[k],dict_params_plot=dict_params_plot_copy, dict_font_size=self.dict_font_size)]
                 elif self.dim[0]!=1 and self.dim[1]==1:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]], self.list_data[k],dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]], self.list_data[k],dict_params_plot=dict_params_plot_copy, dict_font_size=self.dict_font_size)]
                 else:
-                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]][k%self.dim[1]], self.list_data[k], dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+                    self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]][k%self.dim[1]], self.list_data[k], dict_params_plot=dict_params_plot_copy, dict_font_size=self.dict_font_size)]
         
         except IndexError:
             print("{0}\n/!\/!\ Graph dimension doesn't match with pd.DataFrames dimensions /!\/!\\".format(IndexError))
             self.fig.clear()
 
+    # def set_plot(self):
+    #     '''
+    #     -------------
+    #     Description :  
+                
+    #     -------------
+    #     Arguments :
+    #             var -- type, Descr
+    #     -------------
+    #     Returns :
+                
+    #     '''
+    #     self.list_graph = []
+    #     try:
+    #         for k in range(len(self.list_data)):
+    #             coord = (k//self.dim[1],k%self.dim[1])
+    #             if self.dim[0]==1 and self.dim[1]==1:
+    #                 if len(self.list_data)==1:
+    #                     self.list_graph += [gr.Graph(self.fig, self.ax, self.list_data[k],dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+    #                 else:
+    #                     raise IndexError
+    #             elif self.dim[0]==1 and self.dim[1]!=1:
+    #                 self.list_graph += [gr.Graph(self.fig, self.ax[k%self.dim[1]], self.list_data[k],dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+    #             elif self.dim[0]!=1 and self.dim[1]==1:
+    #                 self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]], self.list_data[k],dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+    #             else:
+    #                 self.list_graph += [gr.Graph(self.fig, self.ax[k//self.dim[1]][k%self.dim[1]], self.list_data[k], dict_params_plot=self.dict_params_plot, dict_font_size=self.dict_font_size)]
+        
+    #     except IndexError:
+    #         print("{0}\n/!\/!\ Graph dimension doesn't match with pd.DataFrames dimensions /!\/!\\".format(IndexError))
+    #         self.fig.clear()
 
     def set_figure_legend(self,subfigs,loc="best", anchor=None, fontsize=20, edgecolor="w"):
         '''

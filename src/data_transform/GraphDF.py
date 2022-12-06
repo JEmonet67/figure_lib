@@ -499,7 +499,7 @@ class GraphDF():
                 # li=[]
                 # for i in range(len(self.list_col)):
                 #         li+=[self.isolate_dataframe_columns(str(i))]
-                df_centered=[self.isolate_dataframe_columns(str(i)) for i in range(len(self.list_col))]
+                df_centered=[self.isolate_dataframe_columns_bynum(str(i)) for i in range(len(self.list_col))]
                 # df_centered=[self.copy()]*len(self.list_col)
 
                 for i in range(len(self.list_col)):

@@ -24,11 +24,11 @@ class Graph():
         self.ax.grid(color=self.dict_params_plot["grid_color"], linewidth=self.dict_params_plot["grid_width"])
         if str(type(gdf)).split(".")[-1][0:-2] == "GraphDF":
         # if str(type(gdf)) == "<class 'src.data_transform.GraphDF.GraphDF'>":
-            self.list_curve = [cu.Curve(self.ax, self.fig, gdf.list_col[i]) for i in range(len(gdf.list_col))]
+            self.list_curve = [cu.Curve(self.ax, self.fig, gdf.list_col[i],plot_color = dict_params_plot["plots_color"][i]) for i in range(len(gdf.list_col))]
 
         elif type(gdf) == list and str(type(gdf[0])).split(".")[-1][0:-2] == "GraphDF":
         # elif type(gdf) == list and str(type(gdf[0]))=="<class 'src.data_transform.GraphDF.GraphDF'>":
-            self.list_curve = [cu.Curve(self.ax, self.fig, gdf[i].list_col[0]) for i in range(len(gdf))]
+            self.list_curve = [cu.Curve(self.ax, self.fig, gdf[i].list_col[0],plot_color = dict_params_plot["plots_color"][i]) for i in range(len(gdf))]
 
         try:
             self.ax.tick_params(axis="x", which="both", labelsize=dict_font_size["g_xticklabel"], color="black", length=self.dict_params_plot["ticklength"], width=self.dict_params_plot["tickwidth"])
