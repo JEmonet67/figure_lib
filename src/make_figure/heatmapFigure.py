@@ -23,7 +23,7 @@ class heatMapFigure(Figure):
 
     def set_one_plot(self, df, ax_plot, min_value, max_value, col_map):
         # plt.clf()
-        plot = sns.heatmap(df,vmin=min_value,vmax=max_value,cbar_kws={'label': self.dict_info_fig["colorbar_label"]},cmap=col_map,ax=ax_plot)
+        plot = sns.heatmap(df,vmin=min_value,vmax=max_value,cbar_kws={'label': r"Firing Rate"},cmap=col_map,ax=ax_plot) 
         ax_plot.set_facecolor('black')
         [ax_plot.spines[side].set_visible(True) for side in ax_plot.spines]
         [ax_plot.spines[side].set_linewidth(2) for side in ax_plot.spines]
@@ -66,8 +66,8 @@ class heatMapFigure(Figure):
                 else:
                     col_map = self.dict_params_plot["col_map"]
                 self.list_plot += [self.set_one_plot(data, ax_plot, self.list_data[i].min_value, self.list_data[i].max_value, col_map)]
-            #plt.text(-2.5,-0.2, f"{t:.4f} s", c="black", weight="bold") # 2 heatmap
-            plt.text(4.5,-0.2, f"{t:.4f} s", c="black", weight="bold")
+            # plt.text(-5.2,-0.5, f"{t:.4f} s", c="black", weight="bold") # 2 heatmap
+            plt.text(9,-0.5, f"{t:.4f} s", c="black", weight="bold")
             self.set_titles()
             self.set_labels()
 

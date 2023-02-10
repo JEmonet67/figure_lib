@@ -1,7 +1,7 @@
 import pandas as pd
 
 class Curve():
-    def __init__(self, ax, fig, col, lw=4, ls="-",plot_color=None):
+    def __init__(self, ax, fig, col, lw=7, ls="-",plot_color=None):
         self.col = col
 
         if str(type(col)).split(".")[-1][0:-2]=="GraphColumn":
