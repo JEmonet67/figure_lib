@@ -510,12 +510,12 @@ class GraphDF():
 
                 return df_centered
 
-        def row_to_2Dmatrix(self, i_row):
+        def row_to_2Dmatrix(self, i_row, sizes_mm, n_cells):
                 row = self.data.iloc[i_row]
                 t = round(self.data.iloc[i_row].name,4)
 
-                x = [round(i,2) for i in np.linspace(20,0,20)]
-                y = [round(i,2) for i in np.linspace(0,20,20)]
+                x = [round(i,2) for i in np.linspace(sizes_mm[0],0,n_cells[0])]
+                y = [round(i,2) for i in np.linspace(0,sizes_mm[1],n_cells[1])]
 
                 mtx2D=pd.DataFrame(0,index=x,columns=y)
                 mtx2D.index.name = "Y"
@@ -527,13 +527,13 @@ class GraphDF():
                 
                 return mtx2D, t
 
-        def export_rows_to_2DmatrixList(self):
+        def export_rows_to_2DmatrixList(self, sizes_mm, n_cells):
                 list_2Dmatrix = []
                 list_t = []
                 max_value = self.data.max().max()
                 min_value = self.data.min().min()
                 for i_row in range(self.data.shape[0]):
-                        mtxt2D,t = self.row_to_2Dmatrix(i_row)
+                        mtxt2D,t = self.row_to_2Dmatrix(i_row, sizes_mm, n_cells)
                         list_2Dmatrix += [mtxt2D]
                         list_t += [t]
 
