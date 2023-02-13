@@ -13,12 +13,12 @@ class graphFigure(Figure):
         super().__init__(list_data, dimX, dimY, sizeX, sizeY, dict_info_fig, dict_font_size, dict_params_fig, dict_params_plot)
         
         if self.dim[0]*self.dim[1] > len(self.list_data):
-            print("Warning : Graph dimension is superior to dataframes dimensions")
+            print("Warning : Graph dimension is superior to data to plot dimension")
 
         self.set_plot()
         self.set_titles()
         self.set_labels()
-        self.set_figure_legend((self.dim[0],self.dim[1]),fontsize=self.dict_font_size["legend"])
+        #self.set_figure_legend((self.dim[0],self.dim[1]),fontsize=self.dict_font_size["legend"])
 
         
     def set_plot(self):
