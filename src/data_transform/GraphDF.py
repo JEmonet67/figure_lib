@@ -4,6 +4,7 @@ import math
 import re
 from figure_lib.src.data_transform.GraphColumn import GraphColumn
 from figure_lib.src.data_transform.listMatrix2D import listMatrix2D
+import time
 
 class GraphDF():
         @classmethod 
@@ -434,53 +435,90 @@ class GraphDF():
                 new_gdf = GraphDF(self.data.loc[select_row],self.dt,self.frame_rate, self.n_cells[0], self.n_cells[1])
 
                 return new_gdf.sort_by_cell_number()
-        
+
         def sort_by_cell_number(self):
                 '''
                 -------------
-                Description :  
-                        
+                Description :
+
                 -------------
                 Arguments :
                         var -- type, Descr
                 -------------
                 Returns :
-                        
+
                 '''
-                data_sort = pd.DataFrame()
+                reg_num = re.compile("(.*) \(([\d]{1,5})\)")
 
-                dict_col = {}
-                for name in self.data.columns:
-                        if re.search(r'[\d]{1,4}',name)!=None:
-                                if re.search(r'[\d]{1,4}',name)[0] not in dict_col:
-                                        dict_col[re.search(r'[\d]{1,4}',name)[0]] = [self.data.loc[:,[name]]]
-                                else:
-                                        dict_col[re.search(r'[\d]{1,4}',name)[0]] = dict_col[re.search(r'[\d]{1,4}',name)[0]] + [self.data.loc[:,[name]]]
+                data_sort = self.data.sort_index(axis=1, key=lambda x: [
+                        (reg_num.findall(elt)[0][0], int(reg_num.findall(elt)[0][1])) for elt in x.tolist()])
+
+                return GraphDF(data_sort, self.dt, self.frame_rate, self.n_cells[0], self.n_cells[1])
 
 
-                # dict_col = {re.search(r'[\d]{1,4}',name)[0]:self.data.loc[:,[name]] for name in self.data.columns if re.search(r'[\d]{1,4}',name)!=None}
-                list_numbers = [int(key) for key in dict_col]
-                list_numbers.sort()
-
-                for number in list_numbers:
-                        if data_sort.equals(pd.DataFrame()):
-                                if len(dict_col[str(number)]) > 1:
-                                        data_sort = dict_col[str(number)][0]
-                                        for i_col in range(1,len(dict_col[str(number)])):
-                                                data_sort = data_sort.join(dict_col[str(number)][i_col])
-                                else:
-                                        data_sort = dict_col[str(number)][0]
-
-                        else:
-                                if len(dict_col[str(number)]) > 1:
-                                        for i_col in range(len(dict_col[str(number)])):
-                                                data_sort = data_sort.join(dict_col[str(number)][i_col])
-
-                                else:
-                                        data_sort = data_sort.join(dict_col[str(number)][0])
-                                # data_sort = data_sort.join(dict_col[str(number)])
-
-                return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
+        # def sort_by_cell_number_old(self):
+        #         '''
+        #         -------------
+        #         Description :
+        #
+        #         -------------
+        #         Arguments :
+        #                 var -- type, Descr
+        #         -------------
+        #         Returns :
+        #
+        #         '''
+        #
+        #         # start = time.time()
+        #         data_sort = pd.DataFrame()
+        #
+        #         dict_col = {}
+        #         reg_id_col = re.compile("[\d]{1,4}")
+        #         # print(1, time.time()-start)
+        #         for name in self.data.columns:
+        #                 num = reg_id_col.findall(name)
+        #                 if num != []:
+        #                         if num[0] not in dict_col:
+        #                                 dict_col[num[0]] = [self.data.loc[:, [name]]]
+        #                         else:
+        #                                 dict_col[num[0]] = dict_col[num[0]] + [self.data.loc[:, [name]]]
+        #
+        #
+        #         # for name in self.data.columns:
+        #         #         if re.search(r'[\d]{1,4}',name)!=None:
+        #         #                 if re.search(r'[\d]{1,4}',name)[0] not in dict_col:
+        #         #                         dict_col[re.search(r'[\d]{1,4}',name)[0]] = [self.data.loc[:,[name]]]
+        #         #                 else:
+        #         #                         dict_col[re.search(r'[\d]{1,4}',name)[0]] = dict_col[re.search(r'[\d]{1,4}',name)[0]] + [self.data.loc[:,[name]]]
+        #
+        #
+        #         # dict_col = {re.search(r'[\d]{1,4}',name)[0]:self.data.loc[:,[name]] for name in self.data.columns if re.search(r'[\d]{1,4}',name)!=None}
+        #         list_numbers = [int(key) for key in dict_col]
+        #         list_numbers.sort()
+        #         # print(2, time.time() - start)
+        #
+        #         for number in list_numbers:
+        #                 if data_sort.equals(pd.DataFrame()):
+        #                         if len(dict_col[str(number)]) > 1:
+        #                                 data_sort = dict_col[str(number)][0]
+        #                                 for i_col in range(1,len(dict_col[str(number)])):
+        #                                         data_sort = data_sort.join(dict_col[str(number)][i_col])
+        #                         else:
+        #                                 data_sort = dict_col[str(number)][0]
+        #
+        #                 else:
+        #                         if len(dict_col[str(number)]) > 1:
+        #                                 for i_col in range(len(dict_col[str(number)])):
+        #                                         # print(i_col, number, time.time() - start)
+        #                                         #Problème de temps mis par le sorting à ce niveau
+        #                                         # print(number, dict_col[str(number)][i_col])
+        #                                         data_sort = data_sort.join(dict_col[str(number)][i_col])
+        #
+        #                         else:
+        #                                 data_sort = data_sort.join(dict_col[str(number)][0])
+        #                         # data_sort = data_sort.join(dict_col[str(number)])
+        #         # print(5, time.time() - start)
+        #         return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
 
         def tmax_centering_df(self):

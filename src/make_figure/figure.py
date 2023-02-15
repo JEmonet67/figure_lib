@@ -143,14 +143,12 @@ class Figure(ABC):
                 elif len(xlabel)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of X labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
-                    
                     for i in range(len(xlabel)):
                         self.list_ax[i].set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"])
             elif type(xlabel)==str:
                 for i in range(len(self.list_ax)):
                     self.list_ax[i].set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"])
             else:
-                
                 print("{0}\n/!\/!\ X labels names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
             pass

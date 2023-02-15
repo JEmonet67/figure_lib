@@ -32,4 +32,7 @@ print(gaussian(3, 1.05, 20, 20))
 print(gaussian(2.7, 18/19, 18, 20) * 0.33)
 print(gaussian(4.5, 30/19, 30, 20)* 0.2)
 
-print(compute_cell_id(5,6,4,10,10))
+print(compute_cell_id(7,7, 2,14,14))
+print(compute_cell_id(7,7, 3,14,14))
+print(compute_cell_id(7,7, 4,14,14))
+

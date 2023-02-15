@@ -66,8 +66,10 @@ class heatMapFigure(Figure):
                 else:
                     col_map = self.dict_params_plot["col_map"]
                 self.list_plot += [self.set_one_plot(data, ax_plot, self.list_data[i].min_value, self.list_data[i].max_value, col_map)]
-            #plt.text(-2.5,-0.2, f"{t:.4f} s", c="black", weight="bold") # 2 heatmap
-            plt.text(4.5,-0.2, f"{t:.4f} s", c="black", weight="bold")
+            if len(self.list_data) == 1:
+                plt.text(4.5, -0.2, f"{t:.4f} s", c="black", weight="bold")
+            elif len(self.list_data) == 2:
+                plt.text(-2.5,-0.2, f"{t:.4f} s", c="black", weight="bold") # 2 heatmap
             self.set_titles()
             self.set_labels()
 
