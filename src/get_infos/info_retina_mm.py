@@ -23,7 +23,7 @@ def gaussian(radius, dist, length, n_cell):
     return w
 
 def compute_cell_id(x,y,z, X, Y):
-    return X*Y*z + (X*(x-1)+(y-1)-1)
+    return X*Y*z + (X*(x-1)+(y-1))
 
 print(compute_rf_gang(90, 300, 60))
 print(compute_rf_gang(50, 170, 95))
@@ -32,7 +32,13 @@ print(gaussian(3, 1.05, 20, 20))
 print(gaussian(2.7, 18/19, 18, 20) * 0.33)
 print(gaussian(4.5, 30/19, 30, 20)* 0.2)
 
-print(compute_cell_id(7,7, 2,14,14))
-print(compute_cell_id(7,7, 3,14,14))
-print(compute_cell_id(7,7, 4,14,14))
+print(compute_cell_id(19,19, 3,37,37))
+print(compute_cell_id(19,19, 4,37,37))
+print()
+print(compute_cell_id(3,19, 4,37,37))
+print(compute_cell_id(35,19, 4,37,37))
+print(compute_cell_id(3,19, 3,37,37))
+print(compute_cell_id(35,19, 3,37,37))
+
+
 
