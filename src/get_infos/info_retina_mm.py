@@ -34,6 +34,8 @@ print(gaussian(4.5, 30/19, 30, 20)* 0.2)
 
 print(compute_cell_id(19,19, 3,37,37))
 print(compute_cell_id(19,19, 4,37,37))
+print(compute_cell_id(7,8, 3,14,14))
+print(compute_cell_id(7,8, 4,14,14))
 print(compute_cell_id(5,6, 3,10,10))
 
 print()
@@ -41,6 +43,12 @@ print(compute_cell_id(3,19, 4,37,37))
 print(compute_cell_id(35,19, 4,37,37))
 print(compute_cell_id(3,19, 3,37,37))
 print(compute_cell_id(35,19, 3,37,37))
+
+print()
+print(compute_cell_id(6,7, 3,10,10))
+print(compute_cell_id(10,6, 4,10,10))
+print(compute_cell_id(1,6, 3,10,10))
+print(compute_cell_id(10,10, 3,10,10))
 
 
 

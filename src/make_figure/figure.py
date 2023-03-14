@@ -94,7 +94,7 @@ class Figure(ABC):
         try:
             title = self.dict_info_fig["title"]
             if type(title)==str:
-                self.fig.suptitle(title, fontsize=self.dict_font_size["main_title"], fontweight="bold")
+                self.fig.suptitle(title, fontsize=self.dict_font_size["main_title"], fontweight="bold", y=0.965)
             else:
                 print("{0}\n/!\/!\ Title name have to be str /!\/!\\".format(TypeError))
         except KeyError:
@@ -108,11 +108,11 @@ class Figure(ABC):
                     print("{0}\n/!\/!\ Number of subfigures titles inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(subtitles)):
-                        self.list_ax[i].set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
+                        self.list_ax[i].set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"],pad=10)
                         # self.list_graph[i].ax.set_title(subtitles[i],fontsize=self.dict_font_size["subtitle"])
             elif subtitles=="":
                 for i in range(len(subtitles)):
-                    self.list_ax[i].set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
+                    self.list_ax[i].set_title(subtitles,fontsize=self.dict_font_size["subtitle"],pad=10)
                     # self.list_graph[i].ax.set_title(subtitles,fontsize=self.dict_font_size["subtitle"])
             else:
                 print("{0}\n/!\/!\ Subtitles names have to be a list of str /!\/!\\".format(TypeError))
