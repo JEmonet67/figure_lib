@@ -398,7 +398,7 @@ class GraphDF():
                         if isinstance(Xmin,float) or isinstance(Xmin,int) and isinstance(Xmax,float) or isinstance(Xmax,int) and Xmin<Xmax:  
                                 gdf = self.copy()
                                 gdf.data = self.data[(self.data.index>=Xmin)&(self.data.index<=Xmax)]
-                                gdf.data.index = gdf.data.index - gdf.data.index[0]
+                                gdf.data.index = np.round(gdf.data.index - gdf.data.index[0],6)
                                 
                                 return gdf
                                 
