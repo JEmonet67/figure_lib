@@ -45,8 +45,8 @@ print(compute_cell_id(3,19, 3,37,37))
 print(compute_cell_id(35,19, 3,37,37))
 
 print()
-print(compute_cell_id(6,7, 3,10,10))
-print(compute_cell_id(10,6, 4,10,10))
+print(compute_cell_id(21,21, 3,40,40))
+print(compute_cell_id(21,21, 4,40,40))
 print(compute_cell_id(1,6, 3,10,10))
 print(compute_cell_id(10,10, 3,10,10))
 
