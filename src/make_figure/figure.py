@@ -139,15 +139,15 @@ class Figure(ABC):
             if type(xlabel)==list and [True for i in range(len(xlabel)) if type(xlabel[i])==str] == [True]*len(xlabel):
                 if len(xlabel)==1:
                     for i in range(len(self.list_ax)):
-                        self.list_ax[i].set_xlabel(xlabel=xlabel[0], fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"])
+                        self.list_ax[i].set_xlabel(xlabel=xlabel[0], fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
                 elif len(xlabel)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of X labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(xlabel)):
-                        self.list_ax[i].set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"])
+                        self.list_ax[i].set_xlabel(xlabel=xlabel[i], fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
             elif type(xlabel)==str:
                 for i in range(len(self.list_ax)):
-                    self.list_ax[i].set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"])
+                    self.list_ax[i].set_xlabel(xlabel=xlabel, fontsize=self.dict_font_size["xlabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
             else:
                 print("{0}\n/!\/!\ X labels names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
@@ -158,15 +158,15 @@ class Figure(ABC):
             if type(ylabel)==list and [True for i in range(len(ylabel)) if type(ylabel[i])==str] == [True]*len(ylabel):
                 if len(ylabel)==1:
                     for i in range(len(self.list_ax)):
-                        self.list_ax[i].set_ylabel(ylabel=ylabel[0],fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"])
+                        self.list_ax[i].set_ylabel(ylabel=ylabel[0],fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
                 elif len(ylabel)<len(self.list_ax):
                     print("{0}\n/!\/!\ Number of Y labels inferior to the real number of subfigures /!\/!\\".format(IndexError))
                 else:
                     for i in range(len(ylabel)):
-                        self.list_ax[i].set_ylabel(ylabel=ylabel[i],fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"])
+                        self.list_ax[i].set_ylabel(ylabel=ylabel[i],fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
             elif type(ylabel)==str:
                 for i in range(len(self.list_ax)):
-                    self.list_ax[i].set_ylabel(ylabel=ylabel,fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"])
+                    self.list_ax[i].set_ylabel(ylabel=ylabel,fontsize=self.dict_font_size["ylabel"], labelpad=self.dict_params_plot["labelpad"],fontweight='bold')
             else:
                 print("{0}\n/!\/!\ Y labels names have to be a list of str /!\/!\\".format(TypeError))
         except KeyError:
