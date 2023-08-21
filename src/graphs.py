@@ -64,11 +64,11 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             # One curve graphs
             if info_cells["num"][i][0]==-1:
                 info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
-                                        params_sim["n_cells_Y"] * (int(np.floor(params_sim["n_cells_X"] / 2)) - 1) + \
+                                        params_sim["n_cells_Y"] * (int(np.ceil(params_sim["n_cells_X"] / 2)) - 1) + \
                                         int(np.floor(params_sim["n_cells_Y"] / 2))
             if info_cells["num"][i][1]==-1:
                 info_cells["num"][i][1] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i][1] + \
-                                       params_sim["n_cells_Y"]*(int(np.floor(params_sim["n_cells_X"]/2))-1)+\
+                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
                                        int(np.floor(params_sim["n_cells_Y"]/2))
 
 
@@ -108,7 +108,7 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             # One curve graphs
             if info_cells["num"][i ]==-1:
                 info_cells["num"][i] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i] + \
-                                       params_sim["n_cells_Y"]*(int(np.floor(params_sim["n_cells_X"]/2))-1)+\
+                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
                                        int(np.floor(params_sim["n_cells_Y"]/2))
 
             output = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i]}')
@@ -186,7 +186,74 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
 # TODO : Mettre un array de t au lieu de multiplier l'indice à dt
 # ajouter un paramètre bin pour binariser comme je le souhaite
 # TODO : Corriger les fuites mémoires qui font tout planter quand je lance en série
-def heatmap_video_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):
+def heatmap_video_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value, color="Greys_r"):
+    # path_stat = stat_list_to_path(list_stats)
+    # title_stat = stat_list_to_title(list_stats)
+
+    c = 1
+    #for name_function, function in dict_functions.items():
+    #print(f"Function : {name_function} {c}/{len(dict_functions.items())}")
+    print(f"Function : {name_function}")
+    function = function[:, :, ::bin_value]
+    max_value = function[:, :, :].max()
+    min_value = function[:, :, :].min()
+    #legend = list_legend[c-1]
+    # max_value = 0.3
+    # min_value = -0.6
+
+    list_frames = []
+    for i in range(function.shape[2]):
+        if i in range(0, function.shape[2], int(function.shape[2] / 10)):
+            print(f"Progress : {np.round(i / function.shape[2] * 100, 0)}%")
+        fig, ax_plot = plt.subplots(1, 1, figsize=(n_cells[0], n_cells[1]))
+        params_fig = dict(wspace=0.15, hspace=0.4)
+
+        info_fig = {"title": f"Heatmap {name_function}\nt={round(bin_value * i * dt, 4)}s", "subtitles": "",
+                    "xlabel": "X coordinate", "ylabel": "Y coordinate", "colorbar_label": legend,
+                    "sharex": True, "sharey": False}
+
+        font_size = {"main_title": 35, "subtitle": 25, "xlabel": 25, "ylabel": 25, "g_xticklabel": 15,
+                     "g_yticklabel": 15, "legend": 15, "global": 25}
+
+        params_plot = {"grid_color": "lightgray", "grid_width": 4, "ticklength": 5, "tickwidth": 3, "labelpad": 15,
+                       "col_map": color}
+
+        mpl.rcParams.update({"font.size": font_size["global"]})
+        sns.dark_palette("#69d", reverse=True, as_cmap=True)
+
+        plot = sns.heatmap(function[:, :, i], vmin=min_value, vmax=max_value,
+                           cbar_kws={'label': info_fig["colorbar_label"]}, cmap=params_plot["col_map"], ax=ax_plot)
+        ax_plot.set_facecolor('black')
+        [ax_plot.spines[side].set_visible(True) for side in ax_plot.spines]
+        [ax_plot.spines[side].set_linewidth(2) for side in ax_plot.spines]
+        ax_plot.tick_params(axis="x", which="both", labelsize=font_size["xlabel"], color="black",
+                            length=params_plot["ticklength"], width=params_plot["tickwidth"])
+        ax_plot.tick_params(axis="y", which="both", labelsize=font_size["ylabel"], color="black",
+                            length=params_plot["ticklength"], width=params_plot["tickwidth"])
+        ax_plot.set_xlabel("X coordinate", fontsize=25)
+        ax_plot.set_ylabel("Y coordinate", fontsize=25)
+        ax_plot.set_title(info_fig["title"], fontsize=30, pad=25)
+
+        ax_plot.set_xticks(np.array([x for x in range(0, n_cells[0] - 1, 2)]))
+        ax_plot.set_xticklabels([str(round(x * 0.225,2)) + "°" for x in range(0, n_cells[0] - 1, 2)])
+        ax_plot.set_yticks(np.array([y for y in range(n_cells[1] - 2, -1, -2)]))
+        ax_plot.set_yticklabels([str(round(x * 0.225,2)) + "°" for x in range(0, n_cells[1] - 1, 2)])
+
+        # plt.savefig(f"{path}/frames/t{i}.png")
+
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+        s, (width, height) = canvas.print_to_buffer()
+        X = np.frombuffer(s, np.uint8).reshape((height, width, 4))
+
+        list_frames.append(X[:, :, 2::-1])
+        plt.close()
+
+        c += 1
+        # TODO : Changer pour mettre moviepy
+        hf.images_to_video_cv2(f"{name_function}.mp4", list_frames, c=True, path_video=path_video, fps=fps)
+
+def heatmap_video_activity_region_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):
     # path_stat = stat_list_to_path(list_stats)
     # title_stat = stat_list_to_title(list_stats)
 
@@ -252,7 +319,6 @@ def heatmap_video_function(name_function, function, path_video, dt, n_cells, leg
         c += 1
         # TODO : Changer pour mettre moviepy
         hf.images_to_video_cv2(f"{name_function}.mp4", list_frames, c=True, path_video=path_video, fps=fps)
-
 
 # mettre un array de t au lieu de multiplier l'indice à dt
 # ajouter un paramètre bin pour binariser comme je le souhaite
@@ -363,7 +429,7 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         # Calcul liste de temps de début d'activation de chaque cellules ganglionnaires (t0)
         print("Compute t0 ganglion cell...", end="")
         dFRdt = dt.compute_derivate(df_ret)
-        ret_f = df_ret.data[(dFRdt>0.1) & (df_ret.data > 5)]
+        ret_f = df_ret.data[(dFRdt>0.001) & (df_ret.data > 0.05)] # df_ret.data > 5 dFRdt>0.1
         list_inflex_ret = [round(ret_f.iloc[:,i].dropna().index[0],3) for i in range(len(ret_f.columns))]
         print("Done!")
 
@@ -373,27 +439,31 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         print("Done!")
 
         # Calcul liste de temps de début d'activation de chaque colonnes corticales (t2)
-        print("activation time...", end="")
+        print("Activation time...", end="")
         dVSDIdt = dt.compute_derivate(vsdi)
-        vsdi_f = vsdi.data[(dVSDIdt>0.1) & (vsdi.data > 0.005)]
+        vsdi_f = vsdi.data[(dVSDIdt>0.001) & (vsdi.data > 0.001)] # vsdi.data > 0.005 dVSDIdt>0.1
         list_inflex_vsdi = [round(vsdi_f.iloc[:,i].dropna().index[0],3) for i in range(len(vsdi_f.columns))]
         print("Done!")
 
         # Calcul de la STTP
         print("Compute STTP and latency...", end="")
         list_STTP = [(list_max_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_max_vsdi))]
+        list_STTP = list_STTP[6:37]
         list_latence = [(list_inflex_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_inflex_vsdi))]
+        list_latence = list_latence[6:37]
+        #list_latence = [(list_inflex_vsdi[i])*1000 for i in range(len(list_inflex_vsdi))]
+
         print("Done!")
 
         print("Make STTP, latency dataframes")
-        df_STTP = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(params_sim["n_cells_X"])], index=list_STTP)
-        df_latence = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(params_sim["n_cells_X"])], index=list_latence)
+        df_STTP = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_STTP)
+        df_latence = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_latence)
         list_df_latence.append(df_latence)
         list_df_sttp.append(df_STTP)
 
         # Plot
         print("Make plot...", end="")
-        list_color = [(0, 0, (i/(vsdi.data.shape[1]/2))) if i<vsdi.data.shape[1]/2 else (0, i/(vsdi.data.shape[1]/2) - 1, 1.0) for i in range(0,vsdi.data.shape[1],1)]
+        list_color = [(0, 0, (i/((vsdi.data.shape[1]-10)/2))) if i<(vsdi.data.shape[1]-10)/2 else (0, i/((vsdi.data.shape[1]-10)/2) - 1, 1.0) for i in range(0,vsdi.data.shape[1]-10,1)]
         fig,ax = plt.subplots(1,1,figsize=(15,15))
         ax.plot(df_STTP, c="black")
         # ax.plot(df_STTP, marker="^", markersize=12, label="Time to peak")
@@ -409,10 +479,10 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         ax.set_title(f"Latency and time to peak as function of cortical space\nwith white bar moving at {value_caract}°/s", fontsize=35, fontweight="bold", pad=40)
         ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
-        ax.xaxis.set_ticks(np.array([i for i in range(-2500,500,200)]))
+        ax.xaxis.set_ticks(np.array([i for i in range(-1000,300,200)]))
         ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
-        ax.set_xlim(-2500,500)
+        ax.set_xlim(-1000,300)
         print("Done!")
 
         plt.savefig(f"{path}/STTP_latency_{name_caract}{value_caract}{unit_caract}.png", bbox_inches='tight' )
@@ -444,8 +514,12 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
 
         list_diff_lat = [
             abs(df_lat_dlat.loc[:, "Derivate extent"].iloc[i] - df_lat_dlat.loc[:, "Derivate extent"].iloc[i - 1]) for i
-            in range(1, df_lat_dlat.shape[0])]
-        inflex_index = list_diff_lat.index(max(list_diff_lat)) + 1
+            in range(0, df_lat_dlat.shape[0])]
+
+        list_diff_lat = [
+            abs(df_lat_dlat.loc[:, "Derivate extent"].iloc[i]) for i
+            in range(0, df_lat_dlat.shape[0])]
+        inflex_index = list_diff_lat.index(max(list_diff_lat))
         inflex_point = df_lat_dlat.loc[:, "Cort. Extent"].iloc[inflex_index]
 
         # Calcul Latency slope
@@ -453,8 +527,7 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
             latency_slope = np.NaN
             inflex_point = np.NaN
         else:
-            latency_slope = df_lat_dlat.iloc[:inflex_index].loc[:, "Derivate extent"].mean()
-
+            latency_slope = df_lat_dlat.iloc[:inflex_index-3].loc[:, "Derivate extent"].mean()
         # Calcul Stationary Latency
         # s_latency = df_lat_dlat.iloc[inflex_index+1:].loc[:,"Latence"].mean()
         s_latency = df_lat_dlat.iloc[inflex_index + 1:].index.to_series().mean() * 1000
@@ -490,7 +563,7 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax2.set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
 
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-1600, 400, 200)]))
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-900, 600, 100)]))
     ax[1].yaxis.set_ticks(np.array([i for i in range(0, 10, 1)]))
 
     for axe in [ax[0], ax[1], ax2]:
