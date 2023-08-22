@@ -9,32 +9,31 @@ import data_transformation as dt
 # au départ de Modèles_graphes qui prend le nom du dictionnaire et le cherche pour l'importer ou le créé s'il
 # n'existe pas
 
+# TODO
+def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
+    """
+    ### FUNCTION TO IMPORT MULTIPLE CSV FILE IN ONE PATH WITH THE SAME SIMULATION PARAMETERS ###
+
+        -- Input --
+
+
+        -- Output --
+    LIST OF EACH FILE ARRAYS DICTIONNARIES.
+
+    """
+
+
 # TODO : Modifier pour prendre tous les output_cellules différentes dans le csv et tout extraire en arrays sans avoir à indiquer "info_cells"
 # faire aussi en sorte que si muVn exc et muVn inh sont présents, le VSDI est calculé automatiquement.
 # Créer un dictionnaire preproduction qui prends tous les noms de prétraitement à faire (centrage, dérivées, vsdi...).
 # y mettre par exemple center=True.
-def csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
-    dict_arr_outputs = {}  # Déclaration dictionnaire [output_celltype:list[arrays]]
-    outputs_celltypes = [outputs[i] + "_" + celltypes[i]  # Liste str output_type cellules à extraire dans des arrays
-                         for i in range(len(celltypes)) if outputs[i] != "VSDI"]
-
-    if "VSDI" in outputs:
-        if "muVn_CorticalExcitatory" not in outputs_celltypes:
-            outputs_celltypes += ["muVn_CorticalExcitatory"]
-        if "muVn_CorticalInhibitory" not in outputs_celltypes:
-            outputs_celltypes += ["muVn_CorticalInhibitory"]
-
-    dict_arr_outputs = {outputs_celltype: [] for outputs_celltype in
-                        outputs_celltypes}  # Déclaration dictionnaire [output_celltype:list[arrays]]
-
+def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
     dfs = pd.read_csv(path_csv, chunksize=2000)  # Lecture csv en dataframe de 2000 lignes de csv
 
     i_df = 0  # Compteur de dataframe 2000 lignes de csv
 
     for df in dfs:  # Parcours des dataframe de 2000 lignes de csv
-        print(i_df)
         df = df.set_index("Time")  # Renommage index
-
         print("Sorting...", end="")
         df = df.sort_index(axis=1, key=lambda x: [
             # Tri de l'index temporel en fonction du type cellulaire puis de l'output et du numéro
@@ -44,8 +43,23 @@ def csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
             for elt in x.tolist()])
         print("Done !")
 
-        names_col = df.columns.tolist()  # Sauvegarde des noms de colonnes du dataframe
         n_t = df.shape[0]  # Sauvegarde de la taille temporelle du dataframe en cours
+
+        if i_df==0: # Création dictionnaire d'array à partir de tous les outputs_typeCell uniques du dataframe
+            names_col = df.columns.tolist()  # Sauvegarde des noms de colonnes du dataframe
+            list_output_celltype = []
+            list_num = []
+
+            for col in names_col: # Parcours des noms de colonnes du dataframe
+                (output, num, celltype) = dict_re["output_num_celltype"].findall(col)[0]  # Extraction output, numéro et type cellulaire depuis le nom de la colonne actuelle
+                list_num += [int(num)]  # Transformation du numéro en int et ajout dans la liste de num.
+                list_output_celltype += [f"{output}_{celltype}"] # Ajout str output_celltype dans sa liste.
+
+            outputs_celltypes = list(set(list_output_celltype)) # Utilisation du set pour enlever les doublons de noms de colonnes
+            print("outputs_celltypes", outputs_celltypes)
+            dict_arr_outputs = {outputs_celltype: [] for outputs_celltype in
+                                outputs_celltypes}  # Déclaration dictionnaire [output_celltype:list[arrays]]
+
 
         print("Initialize arrays...", end="")
         for output_celltype in outputs_celltypes:  # Parcours des pairs outputs/type cellule à transformer en arrays
@@ -53,36 +67,32 @@ def csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
                                                                  n_t])]  # Initialisation array de 0 dans chaque liste de pair output/type cellule
         print("Done !")
 
-        print("Go through index...")
-        for i in range(len(names_col)):  # Parcours index des noms de colonnes du dataframe
-            (output, num, celltype) = dict_re["output_num_celltype"].findall(names_col[i])[
-                0]  # Extraction output, numéro et type cellulaire depuis le nom de la colonne actuelle
-            num = int(num)  # Transformation du numéro en int
+        print("Iterate index...")
+        # TODO : Changer pour utiliser un parcours de dictionnaire {num : output_celltype} créé au tout début pour faire la liste des
+        # outputs à faire. Cela permet d'éviter de parcourir deux fois pour rien les colonnes du df et le regexp.
+        for i,num in enumerate(list_num):
+            dict_coord_macular = cm.id_to_coordinates(num, (params_sim["n_cells_X"], params_sim[
+                "n_cells_Y"]))  # Transformation id colonne en cours en coordonnées macular
 
-            if output + "_" + celltype in outputs_celltypes:  # Condition sur la présence de la pair output, type cellule dans celles à transformer en arrays
-                dict_coord_macular = cm.id_to_coordinates(num, (params_sim["n_cells_X"], params_sim[
-                    "n_cells_Y"]))  # Transformation id colonne en cours en coordonnées macular
-
-                # dict_coord_array = cm.convert_coord_macular_to_arrays_numpy(dict_coord_macular["X"], dict_coord_macular["Y"], (params_sim["n_cells_X"],params_sim["n_cells_Y"])) # Conversion coordonnées macular en coordonnées numpy arrays
-
-                # Enregistrement de la colonne temporelle en cours à sa coordonnée correspondante
-                dict_arr_outputs[f"{output}_{celltype}"][i_df][
-                    dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[:, i].to_numpy()
-                # Attention au passage d'array macular à numpy
-        print("Done !")
+            # Enregistrement de la colonne temporelle en cours à sa coordonnée correspondante
+            dict_arr_outputs[list_output_celltype[i]][i_df][
+                dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[:, i].to_numpy()
+        print("Done !\n")
         i_df += 1
     print("DFs DONE")
 
     for key in dict_arr_outputs:  # Parcours des outputs type cellule
         dict_arr_outputs[key] = np.concatenate(dict_arr_outputs[key],
                                                axis=-1)  # Concaténation des listes d'array des dataframe de 2000 lignes
-        dict_arr_outputs[key] = np.rot90(dict_arr_outputs[key])
+        dict_arr_outputs[key] = np.rot90(dict_arr_outputs[key]) # Conversion coordonnées numpy to macular
         dict_arr_outputs[key] = dict_arr_outputs[key][:, :, int(np.ceil(
             params_sim["n_transient_frame"] * params_sim["delta_t"] / params_sim["dt"])):]
 
-    if "VSDI" in outputs:
+    if "muVn_CorticalExcitatory" in list_output_celltype and "muVn_CorticalInhibitory" in list_output_celltype:
+        print("Make VSDI")
         dict_arr_outputs["VSDI"] = dt.muVn_to_VSDI(dict_arr_outputs["muVn_CorticalExcitatory"],
                                                    dict_arr_outputs["muVn_CorticalInhibitory"])
+
     print("END")
 
     return dict_arr_outputs
