@@ -5,6 +5,9 @@ import numpy as np
 import coordinate_manager as cm
 import data_transformation as dt
 
+# TODO : Créer un dictionnaire preproduction qui prends tous les noms de prétraitement à faire (centrage, dérivées, vsdi...).
+# y mettre par exemple center=True.
+
 # TODO : Fonction pour sauvegarder le dictionnaire d'arrays une fois les prétraitements terminés, faire une fonction
 # au départ de Modèles_graphes qui prend le nom du dictionnaire et le cherche pour l'importer ou le créé s'il
 # n'existe pas
@@ -22,12 +25,7 @@ def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_
 
     """
 
-
-# TODO : Modifier pour prendre tous les output_cellules différentes dans le csv et tout extraire en arrays sans avoir à indiquer "info_cells"
-# faire aussi en sorte que si muVn exc et muVn inh sont présents, le VSDI est calculé automatiquement.
-# Créer un dictionnaire preproduction qui prends tous les noms de prétraitement à faire (centrage, dérivées, vsdi...).
-# y mettre par exemple center=True.
-def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
+def import_csv_to_array(path_csv, params_sim, dict_re):
     dfs = pd.read_csv(path_csv, chunksize=2000)  # Lecture csv en dataframe de 2000 lignes de csv
 
     i_df = 0  # Compteur de dataframe 2000 lignes de csv
@@ -56,7 +54,7 @@ def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
                 list_output_celltype += [f"{output}_{celltype}"] # Ajout str output_celltype dans sa liste.
 
             outputs_celltypes = list(set(list_output_celltype)) # Utilisation du set pour enlever les doublons de noms de colonnes
-            print("outputs_celltypes", outputs_celltypes)
+            print("outputs_celltypes : ", outputs_celltypes)
             dict_arr_outputs = {outputs_celltype: [] for outputs_celltype in
                                 outputs_celltypes}  # Déclaration dictionnaire [output_celltype:list[arrays]]
 
@@ -68,8 +66,6 @@ def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
         print("Done !")
 
         print("Iterate index...")
-        # TODO : Changer pour utiliser un parcours de dictionnaire {num : output_celltype} créé au tout début pour faire la liste des
-        # outputs à faire. Cela permet d'éviter de parcourir deux fois pour rien les colonnes du df et le regexp.
         for i,num in enumerate(list_num):
             dict_coord_macular = cm.id_to_coordinates(num, (params_sim["n_cells_X"], params_sim[
                 "n_cells_Y"]))  # Transformation id colonne en cours en coordonnées macular
@@ -88,6 +84,7 @@ def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
         dict_arr_outputs[key] = dict_arr_outputs[key][:, :, int(np.ceil(
             params_sim["n_transient_frame"] * params_sim["delta_t"] / params_sim["dt"])):]
 
+    # Compute VSDI array if muVn exc and inh are present
     if "muVn_CorticalExcitatory" in list_output_celltype and "muVn_CorticalInhibitory" in list_output_celltype:
         print("Make VSDI")
         dict_arr_outputs["VSDI"] = dt.muVn_to_VSDI(dict_arr_outputs["muVn_CorticalExcitatory"],
@@ -96,7 +93,6 @@ def import_csv_to_array(path_csv, params_sim, dict_re, xlim):
     print("END")
 
     return dict_arr_outputs
-
 
 def compile_regexp():
     """
