@@ -385,6 +385,7 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
     list_value_caract = []
 
     print("Files browsing.")
+    i = 0
     for file in files:
         name_caract, value_caract, unit_caract, n_transient_frame = dict_re["file"].findall(file)[0]
         list_value_caract.append(value_caract)
@@ -476,7 +477,11 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         leg = ax.legend(fontsize=25)
         leg.legendHandles[0].set_color(list_color[-1])
         leg.legendHandles[1].set_color(list_color[-1])
-        ax.set_title(f"Latency and time to peak as function of cortical space\nwith white bar moving at {value_caract}°/s", fontsize=35, fontweight="bold", pad=40)
+        if name_caract == "barSpeed":
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {value_caract}°/s"
+        else:
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s {name_caract} {value_caract}{unit_caract}"
+        ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
         ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
         ax.xaxis.set_ticks(np.array([i for i in range(-1000,300,200)]))
@@ -486,6 +491,8 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         print("Done!")
 
         plt.savefig(f"{path}/STTP_latency_{name_caract}{value_caract}{unit_caract}.png", bbox_inches='tight' )
+
+        i+=1
 
     caract = [name_caract, list_value_caract, unit_caract]
     return list_df_latence, list_df_sttp, caract
