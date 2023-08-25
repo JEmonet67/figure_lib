@@ -15,7 +15,7 @@ import data_transformation as dt
 # TODO
 def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
     """
-    ### FUNCTION TO IMPORT MULTIPLE CSV FILE IN ONE CSV FILE WITH THE SAME SIMULATION PARAMETERS ###
+    ### FUNCTION TO IMPORT MULTIPLE CSV FILE IN MULTIPLE DICT ARRAYS WITH THE SAME SIMULATION PARAMETERS ###
 
         -- Input --
 
@@ -24,10 +24,11 @@ def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_
     LIST OF EACH FILE ARRAYS DICTIONNARIES.
 
     """
+# TODO : Axis x and y have been shifted, need to correct it
 # TODO : Vérifier le nombre d'éléments dans l'index avant et après modification de la manière de retirer le transient
 def import_csv_to_array(path_csv, params_sim, dict_re):
     """
-    ### FUNCTION TO IMPORT ONE CSV FILE IN FROM ONE CSV FILE INTO A DICTIONNARY OF ARRAYS ###
+    ### FUNCTION TO IMPORT ONE CSV FILE INTO A DICTIONNARY OF ARRAYS ###
 
         -- Input --
 

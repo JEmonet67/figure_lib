@@ -22,169 +22,59 @@ import stim_help_functions as hf
 # si pas nécessaire ou transférer dans une autre fonction dans le cas contraire comme
 # celle pour sélectionner l'array 1D d'une cellule à partir de son numéro d'ID.
 
-def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
+# TODO
+def fig_saving():
     """
-    ### FUNCTION TO PLOT CELL OUTPUT IN FUNCTION OF TIME ###
+    ### FUNCTION TO SAVE ONE FIG IN A PNG FILE ###
 
         -- Input --
 
 
         -- Output --
-    Make a figure with of one graph.
+    PNG File.
 
     """
-    df = gdf.GraphDF(path ,params_sim["delta_t"] ,60 ,params_sim["n_cells_X"] ,params_sim["n_cells_Y"])
-    df = df.crop(df.dt *params_sim["n_transient_frame"])
-    list_outputs = []
-    # Macular cell numero computation and legend if needed
-    for i in range(len(info_cells["num"])):
-        # VSDI graphs
-        if info_cells["name_output"][i] == "VSDI":
-            # Multiple curve graphs
-            if type(info_cells["num"][i][0] )==list:
-                if len(info_cells["num"][i][0]) == 2:
-                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1])
-                elif len(info_cells["num"][i][0]) == 3:
-                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2])
 
-            if type(info_cells["num"][i][1] )==list:
-                if len(info_cells["num"][i][1]) == 2:
-                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1])
-                elif len(info_cells["num"][i][1]) == 3:
-                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2])
-            # One curve graphs
-            if info_cells["num"][i][0]==-1:
-                info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
-                                        params_sim["n_cells_Y"] * (int(np.ceil(params_sim["n_cells_X"] / 2)) - 1) + \
-                                        int(np.floor(params_sim["n_cells_Y"] / 2))
-            if info_cells["num"][i][1]==-1:
-                info_cells["num"][i][1] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i][1] + \
-                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
-                                       int(np.floor(params_sim["n_cells_Y"]/2))
+# TODO
+def plot_one_output(ax, output, index):
+    """
+    ### FUNCTION TO PLOT ONE CELL OUTPUT IN FUNCTION OF A GIVEN INDEX ###
+
+        -- Input --
 
 
+        -- Output --
+    Make one curve in the plot.
 
-            exc = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][0]}')
-            exc = exc.isolate_dataframe_byoutputs("muVn")
-            inh = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][1]}')
-            inh = inh.isolate_dataframe_byoutputs("muVn")
+    """
 
-            exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
-            inh.data = (-(inh.data - inh.data.iloc[0]) / inh.data.iloc[0])
-            #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
-            #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
+def make_graph(ax, dict_arrays, dict_index, params_sim, info_cells, info_fig, params_fig, font_size, params_plot, save=True):
+    """
+    ### FUNCTION TO PLOT ALL WANTED CELL OUTPUT IN FUNCTION OF A GIVEN INDEX ###
 
-            col_exc_rename = {exc.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
-            col_inh_rename = {inh.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(inh.data.columns.shape[0])}
-            exc.data = exc.data.rename(columns=col_exc_rename)
-            inh.data = inh.data.rename(columns=col_inh_rename)
+        -- Input --
 
-            vsdi = exc.copy()
-            vsdi.data = exc.data *0.8 +inh.data *0.2
-            if params_plot["center"]:
-                vsdi = vsdi.tmax_centering_df()
-            list_outputs += [vsdi]
 
-        # Classical macular outputs graphs
-        else:
-            # Multiple curve graphs
-            if type(info_cells["num"][i])==list:
-                if len(info_cells["num"][i]) == 2:
-                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1])
-                elif len(info_cells["num"][i]) == 3:
-                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
-                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2])
+        -- Output --
+    Construct one graph by ploting cell output set in info_cells and with a given index.
 
-            # One curve graphs
-            if info_cells["num"][i ]==-1:
-                info_cells["num"][i] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i] + \
-                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
-                                       int(np.floor(params_sim["n_cells_Y"]/2))
+    """
+    dict_outputs = {} # outputs dict to plot in the graph
+    for output_typeCell in dict_arrays: # Iterate on output_typeCell in dict_arrays
+        num = info_cells[output_typeCell]["num"] # Pick id of the current output_typeCell
+        output = dict_arrays[output_typeCell]
+        index = dict_index[output_typeCell]
 
-            output = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i]}')
-            output = output.isolate_dataframe_byoutputs(info_cells["name_output"][i])
-            if params_plot["center"]:
-                output =output.tmax_centering_df()
-            list_outputs += [output]
+        dict_outputs[output_typeCell] = dt.select_position_to_plot(output, num, params_sim) # transform output array by selecting position to plot
+        # we can have list of arrays or arrays in dict_outputs[output_typeCell] values
+
+        # TODO Make plot with the filtred list arrays
+        # TODO Make legend
+        # TODO Set graph post production treatment
 
 
 
-        # Legend name generation for coordinates in degree selected
-        if info_fig["legend"][i]=="coord_degree":
-            if info_cells["name_output"][i] == "VSDI":
-                info_fig["legend"][i] = \
-                    [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
-                    for num in str(info_cells["num"][i][0]).split(",")]
-            else:
-                info_fig["legend"][i] = [
-                    f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
-                    for num in str(info_cells["num"][i]).split(",")]
-        # elif info_fig["legend"][i] = []: # Add specific legend
-
-    f = gfg.graphFigure(list_outputs, len(list_outputs), 1, 20, 20, dict_info_fig=info_fig,
-                                dict_font_size=font_size, dict_params_plot=params_plot)
-    # f,ax = plt.subplots(1,1, figsize = (20,20))
-    # ax.plot(list_outputs[0].data)
-
-    plt.tight_layout(pad=3)
-
-    # Set graph post production treatment
-    # For multiple graph figures
-    if type(f.ax) == np.ndarray:
-        for i in range(len(f.ax)):
-            # Set X and Y egde values
-            if params_plot["Xlim"][i] != ():
-                f.ax[i].set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
-            if params_plot["Ylim"][i] != ():
-                f.ax[i].set_ylim(params_plot["Ylim"][i][0], params_plot["Ylim"][i][1])
-
-            # Set legend
-            f.ax[i].legend(info_fig["legend"][i], fontsize=font_size['legend'])
-
-            # Browse selected post-prod treatment
-            for name, value in info_fig["postprod"].items():
-
-                # Set highlight x interval
-                if name == "highlight_interv":
-                    for interval in value[i]:
-                        post.highlight_x_interval(f.ax[i], interval[0], interval[1], interval[2], interval[3], interval[4])
-
-
-    # For one graph figures
-    else:
-        # Set X and Y egde values
-        if params_plot["Xlim"][i] != ():
-            f.ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
-        if params_plot["Ylim"][i] != ():
-            f.ax.set_ylim(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1])
-
-        # Set legend
-        if type(info_fig["legend"][i]) == list:
-            f.ax.legend(info_fig["legend"][0], fontsize=font_size['legend'])
-
-        # Browse selected post-prod treatment
-        for name, value in info_fig["postprod"].items():
-
-            # Set highlight x interval
-            if name == "highlight_interv":
-                for interval in value[0]:
-                    post.highlight_x_interval(f.ax, interval[0], interval[1], interval[2], interval[3], interval[4])
-
-    plt.savefig(f'{"/".join(path.split("/")[:-1])}/{info_fig["image_name"]}_newVSDI.png')
-
-
-def plot_one_graph_old(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
+def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
     """
     ### FUNCTION TO PLOT CELL OUTPUT IN FUNCTION OF TIME ###
 

@@ -1,6 +1,19 @@
 import math
 import numpy as np
 
+
+
+# TODO
+def get_center_coordinates():
+
+
+
+# TODO
+def macular_id_to_coord(macular_id):
+
+
+
+# TODO Be able to do horizontal and vertical lines to plot
 def get_horizontal_interval_macular_cell(n_cells, layer, first_cell, last_cell, step_cell=1):
     """
     ### FUNCTION TO OBTAIN ID NUMBER OF A HORIZONTAL MACULAR CELL INTERVAL ###

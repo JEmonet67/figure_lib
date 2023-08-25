@@ -4,6 +4,56 @@ import numpy as np
 # TODO : ADD FUNCTION TO CONVERT CSV IN ARRAYS DICTIONNARY
 
 
+# TODO : get_center_coordinates() and macular_id_to_coord(num) and test this code
+def select_position_to_plot(output, num, params_sim):
+    if num == "": # Case 0 for taking all
+        arrays_to_plot = []
+        for i in output.shape[0]:
+            for j in output.shape[1]:
+                arrays_to_plot += [output[i,j]]
+
+    if num == -1:  # Case 1 for taking default center position of the array
+        coord = cm.get_center_coordinates()  # get coordinates of the array central position
+        arrays_to_plot = output[coord[0], coord[1]]  # add central position to outputs
+
+    elif type(num) == int and num >= 0:  # Case 2 to have one position thanks to the macular id
+        coord = cm.macular_id_to_coord(num)
+        arrays_to_plot = output[coord[0], coord[1]]  # add given position to outputs
+
+    elif type(num) == tuple and len(num) == 2:  # Case 3 to take one position thanks to the coordinates
+        arrays_to_plot = output[num[0], num[1]]  # add given position to outputs
+
+    elif type(num) == dict:  # Case 4 for taking horizontal or vertical line of an array
+        arrays_to_plot = []
+        if num["axis"] == 0:  # Get horizontal line of positions
+            if "step" in num:  # With step
+                for i in range(num["start"],num["end"],num["step"]):
+                    arrays_to_plot += [output[i, np.ceil(params_sim["n_cells_Y"]/2),:]]
+            else:  # Without step
+                for i in range(num["start"], num["end"]):
+                    arrays_to_plot += [output[i, np.ceil(params_sim["n_cells_Y"]/2),:]]
+
+        elif num["axis"] == 1:  # Get vertical line of positions
+            if "step" in num:  # With step
+                for i in range(num["start"],num["end"],num["step"]):
+                    arrays_to_plot += [output[np.ceil(params_sim["n_cells_X"]/2), i,:]]
+            else:  # Without step
+                for i in range(num["start"], num["end"]):
+                    arrays_to_plot += [output[np.ceil(params_sim["n_cells_X"]/2), i,:]]
+
+    elif type(num) == list:  # Case 5 for taking a list of given macular id.
+        arrays_to_plot = []
+        for macular_id in num:
+            coord = cm.macular_id_to_coord(macular_id)
+            arrays_to_plot += [output[coord[0], coord[1]]]
+
+    elif type(num) == list and type(num[0]) == tuple:  # Case 5 for taking a list of given cell coordinates.
+        arrays_to_plot = []
+        for coord in num:
+            arrays_to_plot += [output[coord[0], coord[1]]]
+
+    return arrays_to_plot
+
 # TODO : ADAPT THIS FUNCTION
 def muVn_to_VSDI(muVn_exc, muVn_inh):
     """
