@@ -85,9 +85,6 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
 
             # Enregistrement de la colonne temporelle en cours à sa coordonnée correspondante
             dict_arr_outputs[list_output_celltype[i]][i_df][dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[:, i].to_numpy()
-            #dict_arr_outputs[list_output_celltype[i]][i_df][dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[
-             #   int(np.ceil(params_sim["n_transient_frame"] * params_sim["delta_t"] / params_sim["dt"])):, i].to_numpy()
-
         print("Done !\n")
 
 
@@ -100,9 +97,6 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
         dict_arr_outputs[key] = np.concatenate(dict_arr_outputs[key],
                                                axis=-1)  # Concaténation des listes d'array des dataframe de 2000 lignes
         dict_arr_outputs[key] = np.rot90(dict_arr_outputs[key]) # Conversion coordonnées numpy to macular
-        #dict_arr_outputs[key] = dict_arr_outputs[key][int(np.ceil((params_sim["n_transient_frame"]+1) * params_sim["delta_t"] / params_sim["dt"])):]
-
-    print(arr_index)
 
     # Compute VSDI array if muVn exc and inh are present
     if "muVn_CorticalExcitatory" in list_output_celltype and "muVn_CorticalInhibitory" in list_output_celltype:
