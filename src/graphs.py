@@ -27,6 +27,168 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     ### FUNCTION TO PLOT CELL OUTPUT IN FUNCTION OF TIME ###
 
         -- Input --
+
+
+        -- Output --
+    Make a figure with of one graph.
+
+    """
+    df = gdf.GraphDF(path ,params_sim["delta_t"] ,60 ,params_sim["n_cells_X"] ,params_sim["n_cells_Y"])
+    df = df.crop(df.dt *params_sim["n_transient_frame"])
+    list_outputs = []
+    # Macular cell numero computation and legend if needed
+    for i in range(len(info_cells["num"])):
+        # VSDI graphs
+        if info_cells["name_output"][i] == "VSDI":
+            # Multiple curve graphs
+            if type(info_cells["num"][i][0] )==list:
+                if len(info_cells["num"][i][0]) == 2:
+                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1])
+                elif len(info_cells["num"][i][0]) == 3:
+                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2])
+
+            if type(info_cells["num"][i][1] )==list:
+                if len(info_cells["num"][i][1]) == 2:
+                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1])
+                elif len(info_cells["num"][i][1]) == 3:
+                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2])
+            # One curve graphs
+            if info_cells["num"][i][0]==-1:
+                info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
+                                        params_sim["n_cells_Y"] * (int(np.ceil(params_sim["n_cells_X"] / 2)) - 1) + \
+                                        int(np.floor(params_sim["n_cells_Y"] / 2))
+            if info_cells["num"][i][1]==-1:
+                info_cells["num"][i][1] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i][1] + \
+                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
+                                       int(np.floor(params_sim["n_cells_Y"]/2))
+
+
+
+            exc = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][0]}')
+            exc = exc.isolate_dataframe_byoutputs("muVn")
+            inh = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][1]}')
+            inh = inh.isolate_dataframe_byoutputs("muVn")
+
+            exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
+            inh.data = (-(inh.data - inh.data.iloc[0]) / inh.data.iloc[0])
+            #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
+            #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
+
+            col_exc_rename = {exc.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
+            col_inh_rename = {inh.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(inh.data.columns.shape[0])}
+            exc.data = exc.data.rename(columns=col_exc_rename)
+            inh.data = inh.data.rename(columns=col_inh_rename)
+
+            vsdi = exc.copy()
+            vsdi.data = exc.data *0.8 +inh.data *0.2
+            if params_plot["center"]:
+                vsdi = vsdi.tmax_centering_df()
+            list_outputs += [vsdi]
+
+        # Classical macular outputs graphs
+        else:
+            # Multiple curve graphs
+            if type(info_cells["num"][i])==list:
+                if len(info_cells["num"][i]) == 2:
+                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1])
+                elif len(info_cells["num"][i]) == 3:
+                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
+                        ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2])
+
+            # One curve graphs
+            if info_cells["num"][i ]==-1:
+                info_cells["num"][i] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i] + \
+                                       params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
+                                       int(np.floor(params_sim["n_cells_Y"]/2))
+
+            output = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i]}')
+            output = output.isolate_dataframe_byoutputs(info_cells["name_output"][i])
+            if params_plot["center"]:
+                output =output.tmax_centering_df()
+            list_outputs += [output]
+
+
+
+        # Legend name generation for coordinates in degree selected
+        if info_fig["legend"][i]=="coord_degree":
+            if info_cells["name_output"][i] == "VSDI":
+                info_fig["legend"][i] = \
+                    [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
+                    for num in str(info_cells["num"][i][0]).split(",")]
+            else:
+                info_fig["legend"][i] = [
+                    f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
+                    for num in str(info_cells["num"][i]).split(",")]
+        # elif info_fig["legend"][i] = []: # Add specific legend
+
+    f = gfg.graphFigure(list_outputs, len(list_outputs), 1, 20, 20, dict_info_fig=info_fig,
+                                dict_font_size=font_size, dict_params_plot=params_plot)
+    # f,ax = plt.subplots(1,1, figsize = (20,20))
+    # ax.plot(list_outputs[0].data)
+
+    plt.tight_layout(pad=3)
+
+    # Set graph post production treatment
+    # For multiple graph figures
+    if type(f.ax) == np.ndarray:
+        for i in range(len(f.ax)):
+            # Set X and Y egde values
+            if params_plot["Xlim"][i] != ():
+                f.ax[i].set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
+            if params_plot["Ylim"][i] != ():
+                f.ax[i].set_ylim(params_plot["Ylim"][i][0], params_plot["Ylim"][i][1])
+
+            # Set legend
+            f.ax[i].legend(info_fig["legend"][i], fontsize=font_size['legend'])
+
+            # Browse selected post-prod treatment
+            for name, value in info_fig["postprod"].items():
+
+                # Set highlight x interval
+                if name == "highlight_interv":
+                    for interval in value[i]:
+                        post.highlight_x_interval(f.ax[i], interval[0], interval[1], interval[2], interval[3], interval[4])
+
+
+    # For one graph figures
+    else:
+        # Set X and Y egde values
+        if params_plot["Xlim"][i] != ():
+            f.ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
+        if params_plot["Ylim"][i] != ():
+            f.ax.set_ylim(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1])
+
+        # Set legend
+        if type(info_fig["legend"][i]) == list:
+            f.ax.legend(info_fig["legend"][0], fontsize=font_size['legend'])
+
+        # Browse selected post-prod treatment
+        for name, value in info_fig["postprod"].items():
+
+            # Set highlight x interval
+            if name == "highlight_interv":
+                for interval in value[0]:
+                    post.highlight_x_interval(f.ax, interval[0], interval[1], interval[2], interval[3], interval[4])
+
+    plt.savefig(f'{"/".join(path.split("/")[:-1])}/{info_fig["image_name"]}_newVSDI.png')
+
+
+def plot_one_graph_old(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
+    """
+    ### FUNCTION TO PLOT CELL OUTPUT IN FUNCTION OF TIME ###
+
+        -- Input --
     title : Name of the title to set in the graph.
     num : Macular ID number of the cell to display. By default, the function will chose the middle cell.
 
@@ -181,7 +343,6 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                     post.highlight_x_interval(f.ax, interval[0], interval[1], interval[2], interval[3], interval[4])
 
     plt.savefig(f'{"/".join(path.split("/")[:-1])}/{info_fig["image_name"]}.png')
-
 
 # TODO : Mettre un array de t au lieu de multiplier l'indice à dt
 # ajouter un paramètre bin pour binariser comme je le souhaite
@@ -374,21 +535,30 @@ def heatmap_picture_function(list_frame_to_select, dict_functions, path_output, 
             plt.axis('off')
             plt.savefig(f"{path_output}t{i_frame}.png")
 
+
+# TODO : Faire une RE qui donne les conditions sous forme nameParamValueUnits puis utiliser un autre re pour séparer les
+# trois variables et les placer dans une liste afin de permettre d'avoir autant de conditions de notre choix et d'en
+# avoir parfois qu'une seule au lieu d'être forcé d'en à avoir forcément 2 comme actuellement.
 def make_sttp_latency_graph(path, params_sim, dict_re):
     files = [f for f in os.listdir(path) if isfile(join(path,f)) and dict_re["file"].findall(f) != []]
     print("Files sorting...", end="")
     files.sort(key = lambda x : float(dict_re["file"].findall(x)[0][1].replace(",",".")))
     print("Done !")
-
+    print(files)
     list_df_latence = []
     list_df_sttp = []
-    list_value_caract = []
+    list_list_value_caract = []
 
     print("Files browsing.")
     i = 0
     for file in files:
-        name_caract, value_caract, unit_caract, n_transient_frame = dict_re["file"].findall(file)[0]
-        list_value_caract.append(value_caract)
+        info_caract = dict_re["file"].findall(file)[0]
+        list_name_caract = list(info_caract[0:-1:3])
+        list_value_caract = list(info_caract[1:-1:3])
+        list_unit_caract = list(info_caract[2:-1:3])
+        n_transient_frame = info_caract[-1]
+
+        list_list_value_caract.append(list_value_caract)
         n_transient_frame = int(n_transient_frame)
         print("Create GraphDF...", end="")
         df = gdf.GraphDF(f"{path}/{file}",params_sim["delta_t"],60,params_sim["n_cells_X"],params_sim["n_cells_Y"])
@@ -415,8 +585,10 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         inh = df_muV.isolate_dataframe_columns_bynum(num_inh)
         print("Done!")
         print("Compute VSDI...",end="")
-        exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
-        inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
+        exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
+        inh.data = (-(inh.data - inh.data.iloc[0]) / inh.data.iloc[0])
+        #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
+        #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
 
         col_exc_rename = {exc.data.columns[i]:f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
         col_inh_rename = {inh.data.columns[i]:f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
@@ -477,34 +649,52 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         leg = ax.legend(fontsize=25)
         leg.legendHandles[0].set_color(list_color[-1])
         leg.legendHandles[1].set_color(list_color[-1])
-        if name_caract == "barSpeed":
-            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {value_caract}°/s"
+
+        if list_name_caract[0] == "barSpeed":
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {list_value_caract[0]}°/s"
         else:
-            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s {name_caract} {value_caract}{unit_caract}"
+            end_title = ""
+            for i, caract in enumerate(list_name_caract):
+                end_title += f" {caract} {list_value_caract[i]}{list_unit_caract[i]}"
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s{end_title}"
+        #else:
+        #    title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s {list_name_caract[0]} {list_value_caract[0]}{list_unit_caract[0]}"
+
         ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
         ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
-        ax.xaxis.set_ticks(np.array([i for i in range(-1000,300,200)]))
+        ax.xaxis.set_ticks(np.array([i for i in range(-2000,300,200)]))
         ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
-        ax.set_xlim(-1000,300)
+        ax.set_xlim(-2000,300)
         print("Done!")
 
-        plt.savefig(f"{path}/STTP_latency_{name_caract}{value_caract}{unit_caract}.png", bbox_inches='tight' )
+        if len(list_name_caract) > 1:
+            ext_filename = ""
+            for i, caract in enumerate(list_name_caract):
+                ext_filename += f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+        else:
+            ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+
+        plt.savefig(f"{path}/STTP_latency_{ext_filename}_newVSDI.png", bbox_inches='tight' )
 
         i+=1
 
-    caract = [name_caract, list_value_caract, unit_caract]
-    return list_df_latence, list_df_sttp, caract
+    list_caract = [list_name_caract, list_list_value_caract, list_unit_caract]
+    return list_df_latence, list_df_sttp, list_caract
 
-def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
+def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xlabel):
     list_sttp = []
     list_inflex_point = []
     list_latency_slope = []
     list_s_latency = []
 
     for i in range(0, len(list_df_latence)):
-        print(f"### {list_caract[0]} : {list_caract[1][i]}{list_caract[2]} ###")
+        str_to_print = ""
+        for c,caract in enumerate(list_caract[0]):
+            str_to_print += f"### {list_caract[0][c]} : {list_caract[1][i][c]}{list_caract[2][c]} ###"
+        print(str_to_print)
+        #print(f"### {list_caract[0]} : {list_caract[1][i]}{list_caract[2]} ###")
         df_latence = list_df_latence[i]
         df_sttp = list_df_sttp[i]
 
@@ -548,9 +738,9 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
         print(f"STTP : {sttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
 
     print("Make plot...",end="")
-    df_measures = pd.DataFrame.from_dict({"speed": list_caract[1], "STTP": list_sttp, "Stat. Latency": list_s_latency,
+    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "STTP": list_sttp, "Stat. Latency": list_s_latency,
                                           "Inflexion Point": list_inflex_point,
-                                          "Latency Slope": list_latency_slope}).set_index("speed")
+                                          "Latency Slope": list_latency_slope}).set_index("caract")
     display(df_measures)
     fig, ax = plt.subplots(1, 2, figsize=(25, 10))
     ax2 = ax[1].twinx()
@@ -570,14 +760,17 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract):
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax2.set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
 
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-900, 600, 100)]))
-    ax[1].yaxis.set_ticks(np.array([i for i in range(0, 10, 1)]))
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-2000, 1000, 200)]))
+    ax[1].yaxis.set_ticks(np.array([i for i in range(6, 9, 1)]))
 
     for axe in [ax[0], ax[1], ax2]:
-        axe.set_xlabel("Drive speed (°/s)", fontsize=25, labelpad=20)
+        axe.set_xlabel(xlabel, fontsize=25, labelpad=20)
         # ax.set_title(f"Latency and time to peak as function of cortical space\nwith white bar moving at {speed_stim}°/s", fontsize=35, fontweight="bold", pad=40)
         axe.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         axe.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
     # ax.set_xlim(-800,250)
     fig.tight_layout(pad=5)
-    plt.savefig(f"{path}/STTP_latency_means_{list_caract[0]}_{list_caract[1][0]}to{list_caract[1][-1]}{list_caract[2]}.png", bbox_inches='tight')
+    str_save = ""
+    for c, caract in enumerate(list_caract[0]):
+        str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
+    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI.png", bbox_inches='tight')

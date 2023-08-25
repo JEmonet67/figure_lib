@@ -9,8 +9,12 @@ def muVn_to_VSDI(muVn_exc, muVn_inh):
     """
     FUNCTION TO COMPUTE VSDI ARRAY FROM EXCITATORY AND INHIBITORY MEAN VOLTAGE ARRAYS
     """
-    vsdi_exc = (-(muVn_exc - muVn_exc[: ,: ,0].mean()) / muVn_exc[: ,: ,0].mean())
-    vsdi_inh = (-(muVn_inh - muVn_inh[: ,: ,0].mean()) / muVn_inh[: ,: ,0].mean())
+    muVn0_exc = muVn_exc[: ,:, 0]
+    muVn0_exc = np.repeat(muVn0_exc[:, :, np.newaxis], muVn_exc.shape[-1], axis=2)
+    muVn0_inh = muVn_inh[: ,:, 0]
+    muVn0_inh = np.repeat(muVn0_inh[:, :, np.newaxis], muVn_inh.shape[-1], axis=2)
+    vsdi_exc = (-(muVn_exc - muVn0_exc) / muVn_exc[: ,:])
+    vsdi_inh = (-(muVn_inh - muVn0_inh) / muVn_inh[: ,:])
 
     vsdi = vsdi_exc *0.8 + vsdi_inh *0.2
 

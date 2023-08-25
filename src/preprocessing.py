@@ -15,7 +15,7 @@ import data_transformation as dt
 # TODO
 def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_re, xlim):
     """
-    ### FUNCTION TO IMPORT MULTIPLE CSV FILE IN ONE PATH WITH THE SAME SIMULATION PARAMETERS ###
+    ### FUNCTION TO IMPORT MULTIPLE CSV FILE IN ONE CSV FILE WITH THE SAME SIMULATION PARAMETERS ###
 
         -- Input --
 
@@ -24,14 +24,25 @@ def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_
     LIST OF EACH FILE ARRAYS DICTIONNARIES.
 
     """
-
+# TODO : Vérifier le nombre d'éléments dans l'index avant et après modification de la manière de retirer le transient
 def import_csv_to_array(path_csv, params_sim, dict_re):
+    """
+    ### FUNCTION TO IMPORT ONE CSV FILE IN FROM ONE CSV FILE INTO A DICTIONNARY OF ARRAYS ###
+
+        -- Input --
+
+
+        -- Output --
+    DICTIONNARY OF ARRAYS FOR EACH OUTPUT_CELLTYPE IN MACULAR CSV FILE : {"OUTPUT_CELLTYPE":array_output}
+    DICTIONNARY OF INDEX ARRAYS FOR EACH OUTPUT_CELLTYPE IN MACULAR CSV FILE : {"OUTPUT_CELLTYPE":array_index}
+    """
     dfs = pd.read_csv(path_csv, chunksize=2000)  # Lecture csv en dataframe de 2000 lignes de csv
 
     i_df = 0  # Compteur de dataframe 2000 lignes de csv
 
     for df in dfs:  # Parcours des dataframe de 2000 lignes de csv
         df = df.set_index("Time")  # Renommage index
+        df = df[df.index>=(params_sim["n_transient_frame"]+1) * params_sim["delta_t"]]
         print("Sorting...", end="")
         df = df.sort_index(axis=1, key=lambda x: [
             # Tri de l'index temporel en fonction du type cellulaire puis de l'output et du numéro
@@ -57,32 +68,41 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
             print("outputs_celltypes : ", outputs_celltypes)
             dict_arr_outputs = {outputs_celltype: [] for outputs_celltype in
                                 outputs_celltypes}  # Déclaration dictionnaire [output_celltype:list[arrays]]
-
+            dict_arr_index = {} # Déclaration dictionnaire des arrays index
+            arr_index = [] # Déclaration array des index
 
         print("Initialize arrays...", end="")
         for output_celltype in outputs_celltypes:  # Parcours des pairs outputs/type cellule à transformer en arrays
             dict_arr_outputs[f"{output_celltype}"] += [np.zeros([params_sim["n_cells_X"], params_sim["n_cells_Y"],
                                                                  n_t])]  # Initialisation array de 0 dans chaque liste de pair output/type cellule
+        arr_index += [df.index.to_numpy()]
         print("Done !")
 
-        print("Iterate index...")
+        print("Iterate num...")
         for i,num in enumerate(list_num):
             dict_coord_macular = cm.id_to_coordinates(num, (params_sim["n_cells_X"], params_sim[
                 "n_cells_Y"]))  # Transformation id colonne en cours en coordonnées macular
 
             # Enregistrement de la colonne temporelle en cours à sa coordonnée correspondante
-            dict_arr_outputs[list_output_celltype[i]][i_df][
-                dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[:, i].to_numpy()
+            dict_arr_outputs[list_output_celltype[i]][i_df][dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[:, i].to_numpy()
+            #dict_arr_outputs[list_output_celltype[i]][i_df][dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[
+             #   int(np.ceil(params_sim["n_transient_frame"] * params_sim["delta_t"] / params_sim["dt"])):, i].to_numpy()
+
         print("Done !\n")
+
+
         i_df += 1
     print("DFs DONE")
 
+    arr_index = np.concatenate(arr_index)  # Concaténation listes arrays d'index.
     for key in dict_arr_outputs:  # Parcours des outputs type cellule
+        dict_arr_index[key] = arr_index
         dict_arr_outputs[key] = np.concatenate(dict_arr_outputs[key],
                                                axis=-1)  # Concaténation des listes d'array des dataframe de 2000 lignes
         dict_arr_outputs[key] = np.rot90(dict_arr_outputs[key]) # Conversion coordonnées numpy to macular
-        dict_arr_outputs[key] = dict_arr_outputs[key][:, :, int(np.ceil(
-            params_sim["n_transient_frame"] * params_sim["delta_t"] / params_sim["dt"])):]
+        #dict_arr_outputs[key] = dict_arr_outputs[key][int(np.ceil((params_sim["n_transient_frame"]+1) * params_sim["delta_t"] / params_sim["dt"])):]
+
+    print(arr_index)
 
     # Compute VSDI array if muVn exc and inh are present
     if "muVn_CorticalExcitatory" in list_output_celltype and "muVn_CorticalInhibitory" in list_output_celltype:
@@ -92,7 +112,7 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
 
     print("END")
 
-    return dict_arr_outputs
+    return dict_arr_outputs, dict_arr_index
 
 def compile_regexp():
     """
@@ -108,9 +128,9 @@ def compile_regexp():
     reg_cond = re.compile(
         r"([\w ]*)([\d]{1,3},?\d{0,3}\w*)")  # RE to find all experimental conditions names based on repertory path
     reg_path = re.compile(
-        r"/(\d{1,3})x(\d{1,3})c/(.*?)/(stim_(\d*,?\d*)x(\d*,?\d*)deg_(\d*)(.*))?")  # RE to find nb of cells,typeStim, stim size, stim speed and unit
+        r"\w{1,5}_\w{1,10}_\w{1,10}\d{4}_([A-Za-z]*)(\d*,?\d{0,3})([A-Za-z]*)_?([A-Za-z]*)(\d*,?\d{0,3})([A-Za-z]*)_(\w{1,5})f.csv")  # RE to find nb of cells,typeStim, stim size, stim speed and unit
     reg_file = re.compile(
-        r"\w{1,5}_\w{1,10}_\w{1,10}\d{4}_([A-Za-z]*)(\d*,?\d{0,3})([A-Za-z]*)_(\w{1,5})f.csv")  # RE to find caract name, value and unit from file name following nomenclature
+        r"\w{1,5}_\w{1,10}_\w{1,10}\d{4}_([A-Za-z]*)(\d*,?\d{0,3})([A-Za-z]*)_?([A-Za-z]*)(\d*,?\d{0,3})([A-Za-z]*)_(\w{1,5})f.csv")  # RE to find caract name, value and unit from file name following nomenclature
     reg_output_num_celltype = re.compile(
         r"(.*?) \(([0-9]{1,5})\) (.*)")  # Expression régulière output/numéro/type cellule dans le nom de la colonne d'un csv macular
 
