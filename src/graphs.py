@@ -650,8 +650,8 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax2.set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
 
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-2000, 1000, 200)]))
-    ax[1].yaxis.set_ticks(np.array([i for i in range(6, 9, 1)]))
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-1200, 1200, 200)]))
+    ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
 
     for axe in [ax[0], ax[1], ax2]:
         axe.set_xlabel(xlabel, fontsize=25, labelpad=20)

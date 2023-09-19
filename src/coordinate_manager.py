@@ -4,12 +4,12 @@ import numpy as np
 
 
 # TODO
-def get_center_coordinates():
+#def get_center_coordinates():
 
 
 
 # TODO
-def macular_id_to_coord(macular_id):
+#def macular_id_to_coord(macular_id):
 
 
 
