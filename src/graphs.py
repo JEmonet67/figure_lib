@@ -131,8 +131,10 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             inh = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][1]}')
             inh = inh.isolate_dataframe_byoutputs("muVn")
 
-            exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
-            inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
+            #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
+            #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
+            exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
+            inh.data = (-(inh.data - inh.data.iloc[0]) / inh.data.iloc[0])
 
             col_exc_rename = {exc.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
             col_inh_rename = {inh.data.columns[i] :f"CorticalColumn ({i}) vsdi" for i in range(inh.data.columns.shape[0])}
@@ -509,7 +511,7 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
     dict_latency_STTP_caract = {"caract":list_caract,
                                 "latency":list_df_latence,
                                 "sttp":list_df_sttp}
-    with open(path+"latency_STTP_caract_list", "wb") as file:  # Pickling
+    with open(path+"dict_latency_STTP_caract_newVSDI", "wb") as file:  # Pickling
         pickle.dump(dict_latency_STTP_caract, file)
 
     return list_df_latence, list_df_sttp, list_caract
