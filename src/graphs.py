@@ -6,6 +6,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from os.path import isfile, join
 import os
+import pickle
 
 import postproduction as post
 import data_transformation as dt
@@ -304,75 +305,9 @@ def heatmap_video_function(name_function, function, path_video, dt, n_cells, leg
         # TODO : Changer pour mettre moviepy
         hf.images_to_video_cv2(f"{name_function}.mp4", list_frames, c=True, path_video=path_video, fps=fps)
 
-def heatmap_video_activity_region_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):
-    # path_stat = stat_list_to_path(list_stats)
-    # title_stat = stat_list_to_title(list_stats)
+# TODO
+#def heatmap_video_activity_region_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):
 
-    c = 1
-    #for name_function, function in dict_functions.items():
-    #print(f"Function : {name_function} {c}/{len(dict_functions.items())}")
-    print(f"Function : {name_function}")
-    function = function[:, :, ::bin_value]
-    max_value = function[:, :, :].max()
-    min_value = function[:, :, :].min()
-    #legend = list_legend[c-1]
-    # max_value = 0.3
-    # min_value = -0.6
-
-    list_frames = []
-    for i in range(function.shape[2]):
-        if i in range(0, function.shape[2], int(function.shape[2] / 10)):
-            print(f"Progress : {np.round(i / function.shape[2] * 100, 0)}%")
-        fig, ax_plot = plt.subplots(1, 1, figsize=(n_cells[0], n_cells[1]))
-        params_fig = dict(wspace=0.15, hspace=0.4)
-
-        info_fig = {"title": f"Heatmap {name_function}\nt={round(bin_value * i * dt, 4)}s", "subtitles": "",
-                    "xlabel": "X coordinate", "ylabel": "Y coordinate", "colorbar_label": legend,
-                    "sharex": True, "sharey": False}
-
-        font_size = {"main_title": 35, "subtitle": 25, "xlabel": 25, "ylabel": 25, "g_xticklabel": 15,
-                     "g_yticklabel": 15, "legend": 15, "global": 25}
-
-        params_plot = {"grid_color": "lightgray", "grid_width": 4, "ticklength": 5, "tickwidth": 3, "labelpad": 15,
-                       "col_map": "Blues_r"}
-
-        mpl.rcParams.update({"font.size": font_size["global"]})
-        sns.dark_palette("#69d", reverse=True, as_cmap=True)
-
-        plot = sns.heatmap(function[:, :, i], vmin=min_value, vmax=max_value,
-                           cbar_kws={'label': info_fig["colorbar_label"]}, cmap=params_plot["col_map"], ax=ax_plot)
-        ax_plot.set_facecolor('black')
-        [ax_plot.spines[side].set_visible(True) for side in ax_plot.spines]
-        [ax_plot.spines[side].set_linewidth(2) for side in ax_plot.spines]
-        ax_plot.tick_params(axis="x", which="both", labelsize=font_size["xlabel"], color="black",
-                            length=params_plot["ticklength"], width=params_plot["tickwidth"])
-        ax_plot.tick_params(axis="y", which="both", labelsize=font_size["ylabel"], color="black",
-                            length=params_plot["ticklength"], width=params_plot["tickwidth"])
-        ax_plot.set_xlabel("X coordinate", fontsize=25)
-        ax_plot.set_ylabel("Y coordinate", fontsize=25)
-        ax_plot.set_title(info_fig["title"], fontsize=30, pad=25)
-
-        ax_plot.set_xticks(np.array([x for x in range(0, n_cells[0] - 1, 2)]))
-        ax_plot.set_xticklabels([str(round(x * 0.225,2)) + "°" for x in range(0, n_cells[0] - 1, 2)])
-        ax_plot.set_yticks(np.array([y for y in range(n_cells[1] - 2, -1, -2)]))
-        ax_plot.set_yticklabels([str(round(x * 0.225,2)) + "°" for x in range(0, n_cells[1] - 1, 2)])
-
-        # plt.savefig(f"{path}/frames/t{i}.png")
-
-        canvas = FigureCanvas(fig)
-        canvas.draw()
-        s, (width, height) = canvas.print_to_buffer()
-        X = np.frombuffer(s, np.uint8).reshape((height, width, 4))
-
-        list_frames.append(X[:, :, 2::-1])
-        plt.close()
-
-        c += 1
-        # TODO : Changer pour mettre moviepy
-        hf.images_to_video_cv2(f"{name_function}.mp4", list_frames, c=True, path_video=path_video, fps=fps)
-
-# mettre un array de t au lieu de multiplier l'indice à dt
-# ajouter un paramètre bin pour binariser comme je le souhaite
 
 def heatmap_picture_function(list_frame_to_select, dict_functions, path_output, dt, n_cells):
     bin_value = 14
@@ -571,6 +506,12 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         i+=1
 
     list_caract = [list_name_caract, list_list_value_caract, list_unit_caract]
+    dict_latency_STTP_caract = {"caract":list_caract,
+                                "latency":list_df_latence,
+                                "sttp":list_df_sttp}
+    with open(path+"latency_STTP_caract_list", "wb") as file:  # Pickling
+        pickle.dump(dict_latency_STTP_caract, file)
+
     return list_df_latence, list_df_sttp, list_caract
 
 def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xlabel):
@@ -663,4 +604,4 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     str_save = ""
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
-    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI.png", bbox_inches='tight')
+    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_test.png", bbox_inches='tight')
