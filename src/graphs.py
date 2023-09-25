@@ -490,10 +490,10 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
         ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
-        ax.xaxis.set_ticks(np.array([i for i in range(-2000,300,200)]))
+        ax.xaxis.set_ticks(np.array([i for i in range(-600,300,200)]))
         ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
-        ax.set_xlim(-2000,300)
+        ax.set_xlim(-600,300)
         print("Done!")
 
         if len(list_name_caract) > 1:
@@ -537,36 +537,38 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
         # Calcul Cortical extension df_latence
         df_latence = df_latence.reset_index().rename(columns={0: "Cort. Extent", "index": "Latence"})
         df_latence.loc[:, "Latence"] = df_latence.loc[:, "Latence"] / 1000
-        dlatencedt = dt.compute_derivate_df(df_latence.set_index("Latence"))
-        dlatencedt = dlatencedt.rename(columns={"Cort. Extent": "Derivate extent"}).reset_index().drop(
+
+        dlatencedx = dt.compute_derivate_df(dt.compute_derivate_df(df_latence.set_index("Cort. Extent")))
+        dcortextentdt = dt.compute_derivate_df(df_latence.set_index("Latence"))
+        dlatencedx = dlatencedx.rename(columns={"Latence": "Derivate² latency"}).reset_index().drop(
+            columns="Cort. Extent")
+        dcortextentdt = dcortextentdt.rename(columns={"Cort. Extent": "Derivate cort extent"}).reset_index().drop(
             columns="Latence")
-        df_lat_dlat = df_latence.join(dlatencedt).set_index("Latence")
 
-        list_diff_lat = [
-            abs(df_lat_dlat.loc[:, "Derivate extent"].iloc[i] - df_lat_dlat.loc[:, "Derivate extent"].iloc[i - 1]) for i
-            in range(0, df_lat_dlat.shape[0])]
+        df_param_derivates = df_latence.join(dlatencedx)
+        df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latence")
 
-        list_diff_lat = [
-            abs(df_lat_dlat.loc[:, "Derivate extent"].iloc[i]) for i
-            in range(0, df_lat_dlat.shape[0])]
-        inflex_index = list_diff_lat.index(max(list_diff_lat))
-        inflex_point = df_lat_dlat.loc[:, "Cort. Extent"].iloc[inflex_index]
+        df_param_derivates.loc[:,"Derivate cort extent"] = abs(df_param_derivates.loc[:,"Derivate cort extent"])
+
+        inflex_index = df_param_derivates.reset_index().loc[:, "Derivate² latency"].idxmax()
+        inflex_point = df_param_derivates.loc[:, "Cort. Extent"].iloc[inflex_index]
 
         # Calcul Latency slope
         if inflex_point == None:
             latency_slope = np.NaN
             inflex_point = np.NaN
         else:
-            latency_slope = df_lat_dlat.iloc[:inflex_index-3].loc[:, "Derivate extent"].mean()
+            latency_slope = df_param_derivates.iloc[:inflex_index-3].loc[:, "Derivate cort extent"].mean()
+
         # Calcul Stationary Latency
         # s_latency = df_lat_dlat.iloc[inflex_index+1:].loc[:,"Latence"].mean()
-        s_latency = df_lat_dlat.iloc[inflex_index + 1:].index.to_series().mean() * 1000
+        s_latency = df_param_derivates.iloc[inflex_index + 1:].index.to_series().mean() * 1000
 
         # Append lists one col to each curve
         list_sttp.append(sttp)
         list_s_latency.append(s_latency)
         list_inflex_point.append(inflex_point)
-        list_latency_slope.append(-latency_slope)
+        list_latency_slope.append(latency_slope)
 
         print(f"STTP : {sttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
 
@@ -580,9 +582,9 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     ax[0].plot(df_measures.loc[:, ["STTP"]], c="purple", marker="o", markersize=10, label="STTP")
     ax[0].plot(df_measures.loc[:, ["Stat. Latency"]], c="red", marker="o", markersize=10,
                label="Stationnary latency")
-    ax[1].plot(df_measures.loc[:, ["Inflexion Point"]], c="cyan", marker="o", markersize=10,
+    ax[1].plot(df_measures.loc[:, ["Inflexion Point"]], c="green", marker="o", markersize=10,
                label="Cortical extent")
-    ax2.plot(df_measures.loc[:, ["Latency Slope"]], c="green", marker="o", markersize=10, label="Latency slope")
+    ax2.plot(df_measures.loc[:, ["Latency Slope"]], c="deepskyblue", marker="o", markersize=10, label="Latency slope")
 
     ax[0].legend(fontsize=15)
     lines, labels = ax[1].get_legend_handles_labels()
@@ -593,7 +595,7 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax2.set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
 
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-1200, 1200, 200)]))
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-4000, 1700, 400)]))
     ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
 
     for axe in [ax[0], ax[1], ax2]:
@@ -606,4 +608,4 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     str_save = ""
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
-    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_test.png", bbox_inches='tight')
+    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
