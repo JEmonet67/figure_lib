@@ -133,6 +133,24 @@ class GraphColumn():
         centered_col.data.index = centered_col.data.index-centered_col.tmax
 
         return centered_col
+
+    def rf_centering_col(self, pos_col, speed, size_bar, dt):
+        '''
+            -------------
+        Description :
+                Function to center on rf center.
+        -------------
+        Arguments :
+                self.data -- pandas.DataFrame, two columns dataframe contening Time and data values of the column to center.
+                self.tmax -- float/int, time value corresponding to the data max value.
+        -------------
+        Returns :
+                Return a pandas Dataframe contening a Time column center on RF center and the input data column.
+        '''
+        centered_col = self.copy()
+        centered_col.data.index = centered_col.data.index - (((pos_col + size_bar/2)/speed-dt)*1000)
+
+        return centered_col
     
     def copy(self):
         '''

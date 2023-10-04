@@ -520,6 +520,31 @@ class GraphDF():
         #         # print(5, time.time() - start)
         #         return GraphDF(data_sort,self.dt,self.frame_rate,self.n_cells[0],self.n_cells[1])
 
+        def rf_centering_df(self, list_pos_col, speed, size_bar, dt):
+                '''
+                -------------
+                Description :
+                        Function to center on RF center.
+                -------------
+                Arguments :
+                        df_col -- pandas.DataFrame, two columns dataframe contening Time and data values of the column to center.
+                        tmax -- float/int, time value corresponding to the data max value.
+                -------------
+                Returns :
+                        Return a list containing all DataFrame columns centered on receptive field center.
+                '''
+
+                df_centered=[self.isolate_dataframe_columns_bynum(str(i)) for i in range(len(self.list_col))]
+
+                for i in range(len(self.list_col)):
+                        pos_col = list_pos_col[i]
+
+                        centered_col = self.list_col[i].rf_centering_col(pos_col, speed, size_bar, dt)
+                        df_centered[i].data = centered_col.data
+
+                        df_centered[i].list_col = [centered_col]
+
+                return df_centered
 
         def tmax_centering_df(self):
                 '''

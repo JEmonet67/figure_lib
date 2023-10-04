@@ -89,6 +89,8 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     """
     df = gdf.GraphDF(path ,params_sim["delta_t"] ,60 ,params_sim["n_cells_X"] ,params_sim["n_cells_Y"])
     df = df.crop(df.dt *params_sim["n_transient_frame"])
+    df.data.index = df.data.index*1000 # index in ms
+
     list_outputs = []
     # Macular cell numero computation and legend if needed
     for i in range(len(info_cells["num"])):
@@ -144,7 +146,12 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             vsdi = exc.copy()
             vsdi.data = exc.data *0.8 +inh.data *0.2
             if params_plot["center"]:
-                vsdi = vsdi.tmax_centering_df()
+                list_pos_col = [round(np.floor(
+                    (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
+                    params_sim["n_cells_Y"]) * params_sim["dx"], 2)
+                           for num in info_cells["num"][i][0].split(",")]
+                vsdi = vsdi.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"], params_sim["delta_t"])
+                #vsdi = vsdi.tmax_centering_df()
             list_outputs += [vsdi]
 
         # Classical macular outputs graphs
@@ -169,7 +176,13 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             output = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i]}')
             output = output.isolate_dataframe_byoutputs(info_cells["name_output"][i])
             if params_plot["center"]:
-                output =output.tmax_centering_df()
+                list_pos_col = [round(np.floor(
+                    (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
+                    params_sim["n_cells_Y"]) * params_sim["dx"], 2)
+                    for num in info_cells["num"][i].split(",")]
+                output = output.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"],
+                                            params_sim["delta_t"])
+                #output =output.tmax_centering_df()
             list_outputs += [output]
 
 
@@ -178,11 +191,11 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
         if info_fig["legend"][i]=="coord_degree":
             if info_cells["name_output"][i] == "VSDI":
                 info_fig["legend"][i] = \
-                    [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
+                    [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
                     for num in str(info_cells["num"][i][0]).split(",")]
             else:
                 info_fig["legend"][i] = [
-                    f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)} deg'
+                    f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
                     for num in str(info_cells["num"][i]).split(",")]
         # elif info_fig["legend"][i] = []: # Add specific legend
 
@@ -251,9 +264,12 @@ def heatmap_video_function(name_function, function, path_video, dt, n_cells, leg
     function = function[:, :, ::bin_value]
     max_value = function[:, :, :].max()
     min_value = function[:, :, :].min()
-    #legend = list_legend[c-1]
-    # max_value = 0.3
-    # min_value = -0.6
+
+    if color == "RdBu_r": # Make symmetrical heatmap bar on 0
+        if max_value > abs(min_value):
+            min_value = -max_value
+        else:
+            max_value = -min_value
 
     list_frames = []
     for i in range(function.shape[2]):
@@ -305,7 +321,7 @@ def heatmap_video_function(name_function, function, path_video, dt, n_cells, leg
 
         c += 1
         # TODO : Changer pour mettre moviepy
-        hf.images_to_video_cv2(f"{name_function}.mp4", list_frames, c=True, path_video=path_video, fps=fps)
+        hf.images_to_video_cv2(f"{name_function}_newVSDI.mp4", list_frames, c=True, path_video=path_video, fps=fps)
 
 # TODO
 #def heatmap_video_activity_region_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):
@@ -609,3 +625,56 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
     plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
+
+
+def mean_section_graph(ax, function, index, frame, axis, params_sim, info_fig, params_plot, font_size, x_lim=False, arr_stim=False, ax_stim=False):
+    """
+    Graph for get a mean horizontal or vertical section of one frame
+    """
+    # FOR TEST
+    #test = np.ones((40, 15, 1))
+    #incr = 0
+    #for i in range(test.shape[0]):
+    #    test[i, :] += incr
+    #    incr += 1
+
+    # Mean section graph
+    index_section = np.array([i for i in range(40)]) * 0.225
+
+    if x_lim != False:
+        idx_x_lim_min = (np.abs(index_section - x_lim[0])).argmin()
+        idx_x_lim_max = (np.abs(index_section - x_lim[1])).argmin()
+        index_section = index_section[idx_x_lim_min:idx_x_lim_max+1]
+        function = function[idx_x_lim_min:idx_x_lim_max+1, :, :]
+
+    arr_section_mean = np.zeros((function[:, :, frame].shape[axis]))
+    for i in range(function[:, :, frame].shape[axis]):
+        section_sum = 0
+        if axis:
+            threshold = function[:, i, frame].max() / 2  # 50% of the maximum response
+        else:
+            threshold = function[i, :, frame].max() / 2  # 50% of the maximum response
+
+        for j in range(function[:, :, frame].shape[1 - axis]):
+            if axis:
+                if function[j, i, frame] > threshold:
+                    section_sum += function[j, i, frame]
+            else:
+                if function[i, j, frame] > threshold:
+                    section_sum += function[i, j, frame]
+
+        arr_section_mean[i] = section_sum / function[:, :, frame].shape[1 - axis]
+
+    ax.plot(index_section, arr_section_mean, lw=4, color="Blue", label=f"{round(index[frame],4)}s")
+    ax.set_xlabel(info_fig["xlabel"], fontsize=font_size["xlabel"], labelpad=params_plot["labelpad"])
+    ax.set_ylabel(info_fig["ylabel"], fontsize=font_size["ylabel"])
+    #ax.yaxis.set_ticks(np.array([i for i in np.linspace(0, function.max()*0.3, 10).round(4)]))
+    ax.yaxis.set_ticks(np.array([i for i in np.linspace(0, 0.0002, 10).round(4)]))
+    ax.tick_params(axis="x", which="both", labelsize=font_size["g_xticklabel"], color="black", length=params_plot["ticklength"], width=params_plot["tickwidth"])
+    ax.tick_params(axis="y", which="both", labelsize=font_size["g_yticklabel"], color="black", length=params_plot["ticklength"], width=params_plot["tickwidth"])
+    ax.legend(fontsize=15)
+
+    # Supplementary stimuli if wanted
+    if arr_stim!=False:
+        #arr_stim = arr_stim[params_sim["n_transient_frame"]:-(len(arr_stim) - params_sim["n_transient_frame"] - function.shape[-1])]
+        ax_stim.imshow(arr_stim[frame], aspect='auto', cmap='Greys_r')

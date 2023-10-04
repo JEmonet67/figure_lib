@@ -10,7 +10,7 @@
 - Ajouter et utiliser un json contenant tous les paramètres ? Faire un fichier de configuration de figure.
 
 
-
+e
 
 - Améliorer les imports en retirant leur raccourcis
 - Modifier .copy() pour qu'il tienne plus compte des différentes valeurs de n_cells_y et x de chaque colonnes et les conserve.
