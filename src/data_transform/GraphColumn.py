@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from figure_lib.src.get_infos.info_cell import InfoCell
 
 class GraphColumn():
@@ -148,7 +149,7 @@ class GraphColumn():
                 Return a pandas Dataframe contening a Time column center on RF center and the input data column.
         '''
         centered_col = self.copy()
-        centered_col.data.index = centered_col.data.index - (((pos_col + size_bar/2)/speed-dt)*1000)
+        centered_col.data.index = centered_col.data.index - np.round((((pos_col + size_bar/2)/speed-dt)*1000),2)
 
         return centered_col
     

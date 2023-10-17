@@ -146,7 +146,7 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             vsdi = exc.copy()
             vsdi.data = exc.data *0.8 +inh.data *0.2
             if params_plot["center"]:
-                list_pos_col = [round(np.floor(
+                list_pos_col = [np.round(np.floor(
                     (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
                     params_sim["n_cells_Y"]) * params_sim["dx"], 2)
                            for num in info_cells["num"][i][0].split(",")]
@@ -399,6 +399,14 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         list_name_caract = list(info_caract[0:-1:3])
         list_value_caract = list(info_caract[1:-1:3])
         list_unit_caract = list(info_caract[2:-1:3])
+
+        for i_name, name_value in enumerate(list_name_caract):
+            if name_value == "barSpeed":
+                speed = float(list_value_caract[i_name])
+                break
+            elif name_value != "barSpeed":
+                speed = params_sim["speed"]
+
         n_transient_frame = info_caract[-1]
 
         list_list_value_caract.append(list_value_caract)
@@ -443,11 +451,19 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         print("Done!")
 
         # Calcul liste de temps de début d'activation de chaque cellules ganglionnaires (t0)
-        print("Compute t0 ganglion cell...", end="")
-        dFRdt = dt.compute_derivate(df_ret)
-        ret_f = df_ret.data[(dFRdt>0.001) & (df_ret.data > 0.05)] # df_ret.data > 5 dFRdt>0.1
-        list_inflex_ret = [round(ret_f.iloc[:,i].dropna().index[0],3) for i in range(len(ret_f.columns))]
-        print("Done!")
+        #print("Compute t0 ganglion cell...", end="")
+        #dFRdt = dt.compute_derivate(df_ret)
+        #ret_f = df_ret.data[(dFRdt>0.001) & (df_ret.data > 0.05)] # df_ret.data > 5 dFRdt>0.1
+        #list_inflex_ret = [round(ret_f.iloc[:,i].dropna().index[0],3)*1000 for i in range(len(ret_f.columns))]
+        #print("Done!")
+
+        # Calcul temps centre barre milieu champ récepteur (t0)
+        print("Compute t0 bar center on middle RF...", end="")
+        list_barcenter = [np.round(((np.round(x_col * params_sim["dx"], 2) + params_sim["size_bar"] / 2) / speed - params_sim["delta_t"]), 2)
+                          for x_col in range(params_sim["n_cells_X"])]
+        print("List bar center", list_barcenter)
+        print("Done !")
+
 
         # Calcul liste des temps des pics de chaque cellule (t1)
         print("Compute VSDI peaks...", end="")
@@ -463,11 +479,9 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
 
         # Calcul de la STTP
         print("Compute STTP and latency...", end="")
-        list_STTP = [(list_max_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_max_vsdi))]
-        #list_STTP = list_STTP[6:37]
+        list_STTP = [(list_max_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_max_vsdi))]
         list_STTP = list_STTP[6:params_sim["n_cells_X"]-4]
-        list_latence = [(list_inflex_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_inflex_vsdi))]
-        #list_latence = list_latence[6:37]
+        list_latence = [(list_inflex_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_inflex_vsdi))]
         list_latence = list_latence[6:params_sim["n_cells_X"]-4]
         #list_latence = [(list_inflex_vsdi[i])*1000 for i in range(len(list_inflex_vsdi))]
 
@@ -527,7 +541,7 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         else:
             ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
 
-        plt.savefig(f"{path}/STTP_latency_{ext_filename}_newVSDI.png", bbox_inches='tight' )
+        plt.savefig(f"{path}/STTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight' )
 
         i+=1
 
@@ -535,7 +549,7 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
     dict_latency_STTP_caract = {"caract":list_caract,
                                 "latency":list_df_latence,
                                 "sttp":list_df_sttp}
-    with open(path+f"dict_latency_STTP_{list_caract[0][0]}_newVSDI_testxlim", "wb") as file:  # Pickling
+    with open(path+f"dict_latency_STTP_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
         pickle.dump(dict_latency_STTP_caract, file)
 
     return list_df_latence, list_df_sttp, list_caract
