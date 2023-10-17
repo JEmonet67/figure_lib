@@ -382,7 +382,7 @@ def heatmap_picture_function(list_frame_to_select, dict_functions, path_output, 
 # TODO : Faire une RE qui donne les conditions sous forme nameParamValueUnits puis utiliser un autre re pour séparer les
 # trois variables et les placer dans une liste afin de permettre d'avoir autant de conditions de notre choix et d'en
 # avoir parfois qu'une seule au lieu d'être forcé d'en à avoir forcément 2 comme actuellement.
-def make_sttp_latency_graph(path, params_sim, dict_re):
+def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
     files = [f for f in os.listdir(path) if isfile(join(path,f)) and dict_re["file"].findall(f) != []]
     print("Files sorting...", end="")
     files.sort(key = lambda x : float(dict_re["file"].findall(x)[0][1].replace(",",".")))
@@ -464,9 +464,11 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         # Calcul de la STTP
         print("Compute STTP and latency...", end="")
         list_STTP = [(list_max_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_max_vsdi))]
-        list_STTP = list_STTP[6:37]
+        #list_STTP = list_STTP[6:37]
+        list_STTP = list_STTP[6:params_sim["n_cells_X"]-4]
         list_latence = [(list_inflex_vsdi[i]-list_inflex_ret[i])*1000 for i in range(len(list_inflex_vsdi))]
-        list_latence = list_latence[6:37]
+        #list_latence = list_latence[6:37]
+        list_latence = list_latence[6:params_sim["n_cells_X"]-4]
         #list_latence = [(list_inflex_vsdi[i])*1000 for i in range(len(list_inflex_vsdi))]
 
         print("Done!")
@@ -506,10 +508,16 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
         ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
         ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
-        ax.xaxis.set_ticks(np.array([i for i in range(-600,300,200)]))
         ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
-        ax.set_xlim(-600,300)
+
+        # Set customizable xlim
+        if len(params_plot["Xlim"]) == 1:
+            ax.xaxis.set_ticks(np.array([i for i in range(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1], params_plot["Xlim"][0][2])]))
+            ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
+        elif len(params_plot["Xlim"]) > 1:
+            ax.xaxis.set_ticks(np.array([i for i in range(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1], params_plot["Xlim"][i][2])]))
+            ax.set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
         print("Done!")
 
         if len(list_name_caract) > 1:
@@ -527,7 +535,7 @@ def make_sttp_latency_graph(path, params_sim, dict_re):
     dict_latency_STTP_caract = {"caract":list_caract,
                                 "latency":list_df_latence,
                                 "sttp":list_df_sttp}
-    with open(path+"dict_latency_STTP_caract_newVSDI", "wb") as file:  # Pickling
+    with open(path+f"dict_latency_STTP_{list_caract[0][0]}_newVSDI_testxlim", "wb") as file:  # Pickling
         pickle.dump(dict_latency_STTP_caract, file)
 
     return list_df_latence, list_df_sttp, list_caract
