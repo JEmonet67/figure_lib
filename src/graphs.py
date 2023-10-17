@@ -473,7 +473,7 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul liste de temps de début d'activation de chaque colonnes corticales (t2)
         print("Activation time...", end="")
         dVSDIdt = dt.compute_derivate(vsdi)
-        vsdi_f = vsdi.data[(dVSDIdt>0.001) & (vsdi.data > 0.001)] # vsdi.data > 0.005 dVSDIdt>0.1
+        vsdi_f = vsdi.data[(dVSDIdt>0.001) & (vsdi.data > 0.001)] # vsdi.data > 0.001 dVSDIdt>0.01
         list_inflex_vsdi = [round(vsdi_f.iloc[:,i].dropna().index[0],3) for i in range(len(vsdi_f.columns))]
         print("Done!")
 
@@ -495,7 +495,12 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
 
         # Plot
         print("Make plot...", end="")
-        list_color = [(0, 0, (i/((vsdi.data.shape[1]-10)/2))) if i<(vsdi.data.shape[1]-10)/2 else (0, i/((vsdi.data.shape[1]-10)/2) - 1, 1.0) for i in range(0,vsdi.data.shape[1]-10,1)]
+        #list_color = [(0, 0, (i/((vsdi.data.shape[1]-10)/2))) if i<(vsdi.data.shape[1]-10)/2 else (0, i/((vsdi.data.shape[1]-10)/2) - 1, 1.0) for i in range(0,vsdi.data.shape[1]-10,1)]
+        n_main_axis = params_sim["n_cells_X"] - 1
+        list_color = [(0, 0, (i/(n_main_axis/2))) if i<(n_main_axis/2) else
+                               (0, (i-n_main_axis/2)/(n_main_axis/2) , 1.0)
+                               for i in range(0,n_main_axis+1,1)][5:36]
+
         fig,ax = plt.subplots(1,1,figsize=(15,15))
         ax.plot(df_STTP, c="black")
         # ax.plot(df_STTP, marker="^", markersize=12, label="Time to peak")
