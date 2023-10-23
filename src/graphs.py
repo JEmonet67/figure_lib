@@ -221,7 +221,6 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
 
             # Browse selected post-prod treatment
             for name, value in info_fig["postprod"].items():
-
                 # Set highlight x interval
                 if name == "highlight_interv":
                     for interval in value[i]:
@@ -499,7 +498,7 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         n_main_axis = params_sim["n_cells_X"] - 1
         list_color = [(0, 0, (i/(n_main_axis/2))) if i<(n_main_axis/2) else
                                (0, (i-n_main_axis/2)/(n_main_axis/2) , 1.0)
-                               for i in range(0,n_main_axis+1,1)][5:36]
+                               for i in range(0,n_main_axis+1,1)][6:n_main_axis-3]
 
         fig,ax = plt.subplots(1,1,figsize=(15,15))
         ax.plot(df_STTP, c="black")
@@ -558,6 +557,80 @@ def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
         pickle.dump(dict_latency_STTP_caract, file)
 
     return list_df_latence, list_df_sttp, list_caract
+
+
+def make_multiple_graph_duration_sttp_rfcenter(path, list_df_latency, list_df_sttp, list_caract, params_sim, params_plot):
+    print()
+
+def make_graph_duration_sttp_rfcenter(path, df_latency, df_sttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
+    """
+    FUNCTION TO PLOT LATENCY AND STTP DURATION WITH A DEFAULT CURVE OF THE SPEED GAVE IN PARAMS_SIM.
+    """
+
+    # Plot
+    print("Make plot...", end="")
+
+    # Make title and speed depending on parameters change between csv files
+    end_title = ""
+    if list_name_caract[0] == "barSpeed":
+        speed = list_value_caract[0]
+    else:
+        speed = params_sim["speed"]
+        for i, caract in enumerate(list_name_caract):
+            end_title += f" {caract} {list_value_caract[i]}{list_unit_caract[i]}"
+
+    if "," in speed:
+        speed = float(speed.replace(",","."))
+    else:
+        speed = int(speed)
+
+    title = f"Time to receptive field center and time to peak\n as function of cortical space with \nwhite bar moving at {speed}°/s{end_title}"
+
+    n_main_axis = params_sim["n_cells_X"] - 1
+    list_color = [(0, 0, (i / (n_main_axis / 2))) if i < (n_main_axis / 2) else
+                  (0, (i - n_main_axis / 2) / (n_main_axis / 2), 1.0)
+                  for i in range(0, n_main_axis + 1, 1)][6:n_main_axis-3]
+
+    fig, ax = plt.subplots(1, 1, figsize=(15, 15))
+    ax.plot(df_sttp, c="black")
+    plt.scatter(df_sttp.index, df_sttp.iloc[:, 0], label="Peak", marker='^', s=200, c=list_color)
+
+    ax.plot(df_latency, c="black")
+    plt.scatter(df_latency.index, df_latency.iloc[:, 0], label="Latency", marker="o", s=200, c=list_color)
+
+    df_default_speed = pd.DataFrame(df_latency.iloc[:,0].values, index=df_latency.iloc[:,0].values/(speed/1000))
+    ax.plot(df_default_speed, c="black", ls = "--", lw = 5, label = f"{speed}°/s")
+
+    leg = ax.legend(fontsize=25)
+    leg.legendHandles[0].set_color(list_color[-1])
+    leg.legendHandles[1].set_color(list_color[-1])
+
+    ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
+    ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25, labelpad=20)
+    ax.set_ylabel("Cortical space (degrees)", fontsize=25, labelpad=20)
+    ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
+    ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
+
+    # Set customizable xlim
+    if len(params_plot["Xlim"]) == 1:
+        ax.xaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1], params_plot["Xlim"][0][2])]))
+        ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
+    elif len(params_plot["Xlim"]) > 1:
+        ax.xaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1], params_plot["Xlim"][i][2])]))
+        ax.set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
+    print("Done!")
+
+    if len(list_name_caract) > 1:
+        ext_filename = ""
+        for i, caract in enumerate(list_name_caract):
+            ext_filename += f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+    else:
+        ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+
+    plt.savefig(f"{path}/duration_STTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight')
+
 
 def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xlabel):
     list_sttp = []
