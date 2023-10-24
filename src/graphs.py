@@ -615,6 +615,8 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
     list_latency_slope = []
     list_stationary_latency = []
 
+    list_df_duration_latency, list_df_duration_ttp = dt.delay_to_duration(list_df_latency, list_df_ttp, params_sim)
+
     for i in range(0, len(list_df_latency)):
         str_to_print = ""
         for c,caract in enumerate(list_caract[0]):

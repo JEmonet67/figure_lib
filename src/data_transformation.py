@@ -123,36 +123,44 @@ def compute_derivate_df(df):
 
     return df_dXdt
 
-def delay_to_duration(list_df_latence, list_df_sttp, params_sim):
+def delay_to_duration(list_df_latence, list_df_sttp, params_sim, list_caract):
     """
     FUNCTION TO CONVERT LIST OF LATENCY DATAFRAMES INTO DURATION DATAFRAMES
     """
 
     # Variables declaration for new list
-    new_list_df_latence = []
-    new_list_df_sttp = []
-
+    new_list_df_latency = []
+    new_list_df_ttp = []
 
     # Loop on graph index in latency and sttp lists
     for i_graph in range(len(list_df_latence)):
+        if list_caract[0][0] == "barSpeed":
+            speed = list_caract[1][i_graph][0]
+            if "," in speed:
+                speed = float(speed.replace(",", "."))
+            else:
+                speed = int(speed)
+        else:
+            speed = params_sim["speed"]
+
         # Copy each dataframes in a new list
-        new_list_df_latence += [list_df_latence[i_graph].copy()]
-        new_list_df_sttp += [list_df_sttp[i_graph].copy()]
+        new_list_df_latency += [list_df_latence[i_graph].copy()]
+        new_list_df_ttp += [list_df_sttp[i_graph].copy()]
 
         duration_latency = []
-        duration_sttp = []
+        duration_ttp = []
 
         # Loop on index for row in latency and sttp dataframes
-        for j in range(new_list_df_latence[i_graph].shape[0]):
-            duration_sttp += [new_list_df_sttp[i_graph].iloc[j,0]/(params_sim["speed"]/1000) + new_list_df_sttp[i_graph].index[j]]
-            duration_latency += [new_list_df_latence[i_graph].iloc[j,0]/(params_sim["speed"]/1000) + new_list_df_latence[i_graph].index[j]]
+        for j in range(new_list_df_latency[i_graph].shape[0]):
+            duration_ttp += [new_list_df_ttp[i_graph].iloc[j,0]/(speed/1000) + new_list_df_ttp[i_graph].index[j]]
+            duration_latency += [new_list_df_latency[i_graph].iloc[j,0]/(speed/1000) + new_list_df_latency[i_graph].index[j]]
 
-        new_list_df_latence[i_graph]["duration_latency"] = duration_latency
-        new_list_df_sttp[i_graph]["duration_latency"] = duration_sttp
+        new_list_df_latency[i_graph]["duration_latency"] = duration_latency
+        new_list_df_ttp[i_graph]["duration_latency"] = duration_ttp
 
-        new_list_df_latence[i_graph] = new_list_df_latence[i_graph].set_index("duration_latency")
-        new_list_df_sttp[i_graph] = new_list_df_sttp[i_graph].set_index("duration_latency")
+        new_list_df_latency[i_graph] = new_list_df_latency[i_graph].set_index("duration_latency")
+        new_list_df_ttp[i_graph] = new_list_df_ttp[i_graph].set_index("duration_latency")
 
 
 
-    return new_list_df_latence, new_list_df_sttp
+    return new_list_df_latency, new_list_df_ttp
