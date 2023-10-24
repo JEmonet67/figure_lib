@@ -381,14 +381,14 @@ def heatmap_picture_function(list_frame_to_select, dict_functions, path_output, 
 # TODO : Faire une RE qui donne les conditions sous forme nameParamValueUnits puis utiliser un autre re pour séparer les
 # trois variables et les placer dans une liste afin de permettre d'avoir autant de conditions de notre choix et d'en
 # avoir parfois qu'une seule au lieu d'être forcé d'en à avoir forcément 2 comme actuellement.
-def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
+def make_sttp_latency_graph(path, params_sim, params_plot, dict_re):
     files = [f for f in os.listdir(path) if isfile(join(path,f)) and dict_re["file"].findall(f) != []]
     print("Files sorting...", end="")
     files.sort(key = lambda x : float(dict_re["file"].findall(x)[0][1].replace(",",".")))
     print("Done !")
     print(files)
-    list_df_latency = []
-    list_df_ttp = []
+    list_df_latence = []
+    list_df_sttp = []
     list_list_value_caract = []
 
     print("Files browsing.")
@@ -414,8 +414,15 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         df = gdf.GraphDF(f"{path}/{file}",params_sim["delta_t"],60,params_sim["n_cells_X"],params_sim["n_cells_Y"])
         print("Done!")
 
+        # Calcul valeurs rétine
         print("Crop GraphDF...", end="")
         df = df.crop(params_sim["delta_t"]*n_transient_frame)
+        print("Done!")
+        print("Isolate ganglion cell outputs...", end="")
+        df_ret = df.isolate_dataframe_byoutputs("FiringRate")
+        num_ret = cm.get_horizontal_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 2, 0, params_sim["n_cells_X"])
+        print("num...", end="")
+        df_ret = df_ret.isolate_dataframe_columns_bynum(num_ret)
         print("Done!")
 
         # Calcul VSDI
@@ -430,6 +437,8 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         print("Compute VSDI...",end="")
         exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
         inh.data = (-(inh.data - inh.data.iloc[0]) / inh.data.iloc[0])
+        #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
+        #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
 
         col_exc_rename = {exc.data.columns[i]:f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
         col_inh_rename = {inh.data.columns[i]:f"CorticalColumn ({i}) vsdi" for i in range(exc.data.columns.shape[0])}
@@ -440,10 +449,18 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         vsdi.data=exc.data*0.8+inh.data*0.2
         print("Done!")
 
+        # Calcul liste de temps de début d'activation de chaque cellules ganglionnaires (t0)
+        #print("Compute t0 ganglion cell...", end="")
+        #dFRdt = dt.compute_derivate(df_ret)
+        #ret_f = df_ret.data[(dFRdt>0.001) & (df_ret.data > 0.05)] # df_ret.data > 5 dFRdt>0.1
+        #list_inflex_ret = [round(ret_f.iloc[:,i].dropna().index[0],3)*1000 for i in range(len(ret_f.columns))]
+        #print("Done!")
+
         # Calcul temps centre barre milieu champ récepteur (t0)
         print("Compute t0 bar center on middle RF...", end="")
         list_barcenter = [np.round(((np.round(x_col * params_sim["dx"], 2) + params_sim["size_bar"] / 2) / speed - params_sim["delta_t"]), 2)
                           for x_col in range(params_sim["n_cells_X"])]
+        print("List bar center", list_barcenter)
         print("Done !")
 
 
@@ -455,53 +472,59 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul liste de temps de début d'activation de chaque colonnes corticales (t2)
         print("Activation time...", end="")
         dVSDIdt = dt.compute_derivate(vsdi)
-        vsdi_f = vsdi.data[(dVSDIdt>0.01) & (vsdi.data > 0.001)] # vsdi.data > 0.001 dVSDIdt>0.01
+        vsdi_f = vsdi.data[(dVSDIdt>0.001) & (vsdi.data > 0.001)] # vsdi.data > 0.001 dVSDIdt>0.01
         list_inflex_vsdi = [round(vsdi_f.iloc[:,i].dropna().index[0],3) for i in range(len(vsdi_f.columns))]
         print("Done!")
 
         # Calcul de la STTP
-        print("Compute TTP and latency delays...", end="")
-        list_ttp = [(list_max_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_max_vsdi))]
-        list_ttp = list_ttp[6:params_sim["n_cells_X"]-4]
-        list_latency = [(list_inflex_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_inflex_vsdi))]
-        list_latency = list_latency[6:params_sim["n_cells_X"]-4]
+        print("Compute STTP and latency...", end="")
+        list_STTP = [(list_max_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_max_vsdi))]
+        list_STTP = list_STTP[6:params_sim["n_cells_X"]-4]
+        list_latence = [(list_inflex_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_inflex_vsdi))]
+        list_latence = list_latence[6:params_sim["n_cells_X"]-4]
+        #list_latence = [(list_inflex_vsdi[i])*1000 for i in range(len(list_inflex_vsdi))]
 
         print("Done!")
 
-        print("Make TTP and latency delays dataframes")
-        df_ttp = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_ttp)
-        df_latency = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_latency)
-        list_df_latency.append(df_latency)
-        list_df_ttp.append(df_ttp)
+        print("Make STTP, latency dataframes")
+        df_STTP = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_STTP)
+        df_latence = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_latence)
+        list_df_latence.append(df_latence)
+        list_df_sttp.append(df_STTP)
 
         # Plot
         print("Make plot...", end="")
+        #list_color = [(0, 0, (i/((vsdi.data.shape[1]-10)/2))) if i<(vsdi.data.shape[1]-10)/2 else (0, i/((vsdi.data.shape[1]-10)/2) - 1, 1.0) for i in range(0,vsdi.data.shape[1]-10,1)]
         n_main_axis = params_sim["n_cells_X"] - 1
         list_color = [(0, 0, (i/(n_main_axis/2))) if i<(n_main_axis/2) else
                                (0, (i-n_main_axis/2)/(n_main_axis/2) , 1.0)
                                for i in range(0,n_main_axis+1,1)][6:n_main_axis-3]
 
         fig,ax = plt.subplots(1,1,figsize=(15,15))
-        ax.plot(df_ttp, c="black")
-        plt.scatter(df_ttp.index, df_ttp.iloc[:,0], label="Time to peak", marker='^', s=200, c=list_color)
+        ax.plot(df_STTP, c="black")
+        # ax.plot(df_STTP, marker="^", markersize=12, label="Time to peak")
+        plt.scatter(df_STTP.index, df_STTP.iloc[:,0], label="Time to peak", marker='^', s=200, c=list_color)
 
-        ax.plot(df_latency, c="black")
-        plt.scatter(df_latency.index, df_latency.iloc[:,0], label="Latency", marker="o", s=200, c=list_color)
+        ax.plot(df_latence, c="black")
+        # ax.plot(df_latence, marker="o", markersize=12, label="Latency")
+        plt.scatter(df_latence.index, df_latence.iloc[:,0], label="Latency", marker="o", s=200, c=list_color)
 
         leg = ax.legend(fontsize=25)
         leg.legendHandles[0].set_color(list_color[-1])
         leg.legendHandles[1].set_color(list_color[-1])
 
         if list_name_caract[0] == "barSpeed":
-            title = f"Latency and time to peak delays as function of\ncortical space with white bar moving at {list_value_caract[0]}°/s"
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {list_value_caract[0]}°/s"
         else:
             end_title = ""
             for i, caract in enumerate(list_name_caract):
                 end_title += f" {caract} {list_value_caract[i]}{list_unit_caract[i]}"
-            title = f"Latency and time to peak delays as function of\ncortical spacewith white bar moving at {params_sim['speed']}°/s\n{end_title}"
+            title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s{end_title}"
+        #else:
+        #    title = f"Latency and time to peak as function of cortical space\nwith white bar moving at {params_sim['speed']}°/s {list_name_caract[0]} {list_value_caract[0]}{list_unit_caract[0]}"
 
         ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
-        ax.set_xlabel("Delay to center bar on center RF (ms)", fontsize=25,labelpad=20)
+        ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25,labelpad=20)
         ax.set_ylabel("Cortical space (degrees)", fontsize=25,labelpad=20)
         ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
         ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
@@ -522,28 +545,28 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         else:
             ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
 
-        plt.savefig(f"{path}/TTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight' )
+        plt.savefig(f"{path}/STTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight' )
 
         i+=1
 
     list_caract = [list_name_caract, list_list_value_caract, list_unit_caract]
-    dict_latency_ttp_caract = {"caract":list_caract,
-                                "latency":list_df_latency,
-                                "sttp":list_df_ttp}
-    with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
-        pickle.dump(dict_latency_ttp_caract, file)
+    dict_latency_STTP_caract = {"caract":list_caract,
+                                "latency":list_df_latence,
+                                "sttp":list_df_sttp}
+    with open(path+f"dict_latency_STTP_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
+        pickle.dump(dict_latency_STTP_caract, file)
 
-    return list_df_latency, list_df_ttp, list_caract
+    return list_df_latence, list_df_sttp, list_caract
 
 
-def make_multiple_graph_duration_ttp_latency(path, list_df_latency, list_df_sttp, list_caract, params_sim, params_plot):
-    for i in range(len(list_df_latency)):
-        make_graph_duration_ttp_latency(path, list_df_latency[i], list_df_sttp[i], list_caract[0], list_caract[1][i], list_caract[2], params_sim, params_plot)
+def make_multiple_graph_duration_sttp_rfcenter(path, list_df_latency, list_df_sttp, list_caract, params_sim, params_plot):
+    print()
 
-def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
+def make_graph_duration_sttp_rfcenter(path, df_latency, df_sttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
     """
     FUNCTION TO PLOT LATENCY AND STTP DURATION WITH A DEFAULT CURVE OF THE SPEED GAVE IN PARAMS_SIM.
     """
+
     # Plot
     print("Make plot...", end="")
 
@@ -551,17 +574,17 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
     end_title = ""
     if list_name_caract[0] == "barSpeed":
         speed = list_value_caract[0]
-        if "," in speed:
-            speed = float(speed.replace(",","."))
-        else:
-            speed = int(speed)
     else:
         speed = params_sim["speed"]
         for i, caract in enumerate(list_name_caract):
             end_title += f" {caract} {list_value_caract[i]}{list_unit_caract[i]}"
 
+    if "," in speed:
+        speed = float(speed.replace(",","."))
+    else:
+        speed = int(speed)
 
-    title = f"Latency and peak time as function of\ncortical space with white bar moving at {speed}°/s\n{end_title}"
+    title = f"Time to receptive field center and time to peak\n as function of cortical space with \nwhite bar moving at {speed}°/s{end_title}"
 
     n_main_axis = params_sim["n_cells_X"] - 1
     list_color = [(0, 0, (i / (n_main_axis / 2))) if i < (n_main_axis / 2) else
@@ -569,21 +592,21 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
                   for i in range(0, n_main_axis + 1, 1)][6:n_main_axis-3]
 
     fig, ax = plt.subplots(1, 1, figsize=(15, 15))
-    ax.plot(df_ttp, c="black")
-    plt.scatter(df_ttp.index, df_ttp.iloc[:, 0], label="Peak", marker='^', s=200, c=list_color)
+    ax.plot(df_sttp, c="black")
+    plt.scatter(df_sttp.index, df_sttp.iloc[:, 0], label="Peak", marker='^', s=200, c=list_color)
 
     ax.plot(df_latency, c="black")
     plt.scatter(df_latency.index, df_latency.iloc[:, 0], label="Latency", marker="o", s=200, c=list_color)
 
     df_default_speed = pd.DataFrame(df_latency.iloc[:,0].values, index=df_latency.iloc[:,0].values/(speed/1000))
-    ax.plot(df_default_speed, c="black", ls = "--", lw = 5, label = f"{speed}°/s bar")
+    ax.plot(df_default_speed, c="black", ls = "--", lw = 5, label = f"{speed}°/s")
 
     leg = ax.legend(fontsize=25)
     leg.legendHandles[0].set_color(list_color[-1])
     leg.legendHandles[1].set_color(list_color[-1])
 
     ax.set_title(title, fontsize=35, fontweight="bold", pad=40)
-    ax.set_xlabel("Time (ms)", fontsize=25, labelpad=20)
+    ax.set_xlabel("Delay to incoming drive (ms)", fontsize=25, labelpad=20)
     ax.set_ylabel("Cortical space (degrees)", fontsize=25, labelpad=20)
     ax.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
     ax.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
@@ -609,36 +632,37 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
     plt.savefig(f"{path}/duration_STTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight')
 
 
-def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xlabel, params_sim):
-    list_ttp = []
+def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xlabel):
+    list_sttp = []
     list_inflex_point = []
     list_latency_slope = []
-    list_stationary_latency = []
+    list_s_latency = []
 
-    for i in range(0, len(list_df_latency)):
+    for i in range(0, len(list_df_latence)):
         str_to_print = ""
         for c,caract in enumerate(list_caract[0]):
             str_to_print += f"### {list_caract[0][c]} : {list_caract[1][i][c]}{list_caract[2][c]} ###"
         print(str_to_print)
-        df_latency = list_df_latency[i]
-        df_ttp = list_df_ttp[i]
+        #print(f"### {list_caract[0]} : {list_caract[1][i]}{list_caract[2]} ###")
+        df_latence = list_df_latence[i]
+        df_sttp = list_df_sttp[i]
 
         # Calcul STTP mean
-        ttp = df_ttp.reset_index().iloc[:, 0].mean()
+        sttp = df_sttp.reset_index().iloc[:, 0].mean()
 
-        # Calcul Cortical extension df_latency
-        df_latency = df_latency.reset_index().rename(columns={0: "Cort. Extent", "index": "Latency"})
-        df_latency.loc[:, "Latency"] = df_latency.loc[:, "Latency"] / 1000
+        # Calcul Cortical extension df_latence
+        df_latence = df_latence.reset_index().rename(columns={0: "Cort. Extent", "index": "Latence"})
+        df_latence.loc[:, "Latence"] = df_latence.loc[:, "Latence"] / 1000
 
-        dlatencydx = dt.compute_derivate_df(dt.compute_derivate_df(df_latency.set_index("Cort. Extent")))
-        dcortextentdt = dt.compute_derivate_df(df_latency.set_index("Latency"))
-        dlatencydx = dlatencydx.rename(columns={"Latency": "Derivate² latency"}).reset_index().drop(
+        dlatencedx = dt.compute_derivate_df(dt.compute_derivate_df(df_latence.set_index("Cort. Extent")))
+        dcortextentdt = dt.compute_derivate_df(df_latence.set_index("Latence"))
+        dlatencedx = dlatencedx.rename(columns={"Latence": "Derivate² latency"}).reset_index().drop(
             columns="Cort. Extent")
         dcortextentdt = dcortextentdt.rename(columns={"Cort. Extent": "Derivate cort extent"}).reset_index().drop(
-            columns="Latency")
+            columns="Latence")
 
-        df_param_derivates = df_latency.join(dlatencydx)
-        df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latency")
+        df_param_derivates = df_latence.join(dlatencedx)
+        df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latence")
 
         df_param_derivates.loc[:,"Derivate cort extent"] = abs(df_param_derivates.loc[:,"Derivate cort extent"])
 
@@ -653,26 +677,25 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
             latency_slope = df_param_derivates.iloc[:inflex_index-3].loc[:, "Derivate cort extent"].mean()
 
         # Calcul Stationary Latency
+        # s_latency = df_lat_dlat.iloc[inflex_index+1:].loc[:,"Latence"].mean()
         s_latency = df_param_derivates.iloc[inflex_index + 1:].index.to_series().mean() * 1000
 
         # Append lists one col to each curve
-        list_ttp.append(ttp)
-        list_stationary_latency.append(s_latency)
+        list_sttp.append(sttp)
+        list_s_latency.append(s_latency)
         list_inflex_point.append(inflex_point)
         list_latency_slope.append(latency_slope)
 
-        print(f"TTP : {ttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
+        print(f"STTP : {sttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
 
     print("Make plot...",end="")
-    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "TTP": list_ttp, "Stat. Latency": list_stationary_latency,
+    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "STTP": list_sttp, "Stat. Latency": list_s_latency,
                                           "Inflexion Point": list_inflex_point,
                                           "Latency Slope": list_latency_slope}).set_index("caract")
     display(df_measures)
-
-    # PLOTS
     fig, ax = plt.subplots(1, 2, figsize=(25, 10))
     ax2 = ax[1].twinx()
-    ax[0].plot(df_measures.loc[:, ["TTP"]], c="purple", marker="o", markersize=10, label="TTP")
+    ax[0].plot(df_measures.loc[:, ["STTP"]], c="purple", marker="o", markersize=10, label="STTP")
     ax[0].plot(df_measures.loc[:, ["Stat. Latency"]], c="red", marker="o", markersize=10,
                label="Stationnary latency")
     ax[1].plot(df_measures.loc[:, ["Inflexion Point"]], c="green", marker="o", markersize=10,
@@ -701,7 +724,7 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
     str_save = ""
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
-    plt.savefig(f"{path}/TTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
+    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
 
 
 def mean_section_graph(ax, function, index, frame, axis, params_sim, info_fig, params_plot, font_size, x_lim=False, arr_stim=False, ax_stim=False):
