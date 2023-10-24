@@ -123,7 +123,7 @@ def compute_derivate_df(df):
 
     return df_dXdt
 
-def latency_to_duration(list_df_latence, list_df_sttp, params_sim):
+def delay_to_duration(list_df_latence, list_df_sttp, params_sim):
     """
     FUNCTION TO CONVERT LIST OF LATENCY DATAFRAMES INTO DURATION DATAFRAMES
     """
