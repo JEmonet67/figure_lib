@@ -532,7 +532,7 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
 def make_multiple_graph_duration_ttp_latency(path, list_df_latency, list_df_sttp, list_caract, params_sim, params_plot):
     print()
 
-def make_graph_duration_ttp_latency(path, df_latency, df_sttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
+def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
     """
     FUNCTION TO PLOT LATENCY AND STTP DURATION WITH A DEFAULT CURVE OF THE SPEED GAVE IN PARAMS_SIM.
     """
@@ -554,7 +554,7 @@ def make_graph_duration_ttp_latency(path, df_latency, df_sttp, list_name_caract,
     else:
         speed = int(speed)
 
-    title = f"Time to receptive field center and time to peak\n as function of cortical space with \nwhite bar moving at {speed}°/s{end_title}"
+    title = f"Latency and peak time\n as function of cortical space with \nwhite bar moving at {speed}°/s{end_title}"
 
     n_main_axis = params_sim["n_cells_X"] - 1
     list_color = [(0, 0, (i / (n_main_axis / 2))) if i < (n_main_axis / 2) else
@@ -562,14 +562,14 @@ def make_graph_duration_ttp_latency(path, df_latency, df_sttp, list_name_caract,
                   for i in range(0, n_main_axis + 1, 1)][6:n_main_axis-3]
 
     fig, ax = plt.subplots(1, 1, figsize=(15, 15))
-    ax.plot(df_sttp, c="black")
-    plt.scatter(df_sttp.index, df_sttp.iloc[:, 0], label="Peak", marker='^', s=200, c=list_color)
+    ax.plot(df_ttp, c="black")
+    plt.scatter(df_ttp.index, df_ttp.iloc[:, 0], label="Peak", marker='^', s=200, c=list_color)
 
     ax.plot(df_latency, c="black")
     plt.scatter(df_latency.index, df_latency.iloc[:, 0], label="Latency", marker="o", s=200, c=list_color)
 
     df_default_speed = pd.DataFrame(df_latency.iloc[:,0].values, index=df_latency.iloc[:,0].values/(speed/1000))
-    ax.plot(df_default_speed, c="black", ls = "--", lw = 5, label = f"{speed}°/s")
+    ax.plot(df_default_speed, c="black", ls = "--", lw = 5, label = f"{speed}°/s bar")
 
     leg = ax.legend(fontsize=25)
     leg.legendHandles[0].set_color(list_color[-1])
