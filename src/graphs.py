@@ -530,7 +530,8 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
 
 
 def make_multiple_graph_duration_ttp_latency(path, list_df_latency, list_df_sttp, list_caract, params_sim, params_plot):
-    print()
+    for i in range(len(list_df_latency)):
+        make_graph_duration_ttp_latency(path, list_df_latency[i], list_df_sttp[i], list_caract[0], list_caract[1][i], list_caract[2], params_sim, params_plot)
 
 def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, list_value_caract, list_unit_caract, params_sim, params_plot):
     """
@@ -544,15 +545,15 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
     end_title = ""
     if list_name_caract[0] == "barSpeed":
         speed = list_value_caract[0]
+        if "," in speed:
+            speed = float(speed.replace(",","."))
+        else:
+            speed = int(speed)
     else:
         speed = params_sim["speed"]
         for i, caract in enumerate(list_name_caract):
             end_title += f" {caract} {list_value_caract[i]}{list_unit_caract[i]}"
 
-    if "," in speed:
-        speed = float(speed.replace(",","."))
-    else:
-        speed = int(speed)
 
     title = f"Latency and peak time\n as function of cortical space with \nwhite bar moving at {speed}°/s{end_title}"
 
