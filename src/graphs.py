@@ -520,11 +520,11 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         i+=1
 
     list_caract = [list_name_caract, list_list_value_caract, list_unit_caract]
-    dict_latency_STTP_caract = {"caract":list_caract,
+    dict_latency_ttp_caract = {"caract":list_caract,
                                 "latency":list_df_latency,
                                 "sttp":list_df_ttp}
     with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
-        pickle.dump(dict_latency_STTP_caract, file)
+        pickle.dump(dict_latency_ttp_caract, file)
 
     return list_df_latency, list_df_ttp, list_caract
 
@@ -602,37 +602,36 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
     plt.savefig(f"{path}/duration_STTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight')
 
 
-def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xlabel):
-    list_sttp = []
+def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xlabel):
+    list_ttp = []
     list_inflex_point = []
     list_latency_slope = []
-    list_s_latency = []
+    list_stationary_latency = []
 
-    for i in range(0, len(list_df_latence)):
+    for i in range(0, len(list_df_latency)):
         str_to_print = ""
         for c,caract in enumerate(list_caract[0]):
             str_to_print += f"### {list_caract[0][c]} : {list_caract[1][i][c]}{list_caract[2][c]} ###"
         print(str_to_print)
-        #print(f"### {list_caract[0]} : {list_caract[1][i]}{list_caract[2]} ###")
-        df_latence = list_df_latence[i]
-        df_sttp = list_df_sttp[i]
+        df_latency = list_df_latency[i]
+        df_ttp = list_df_ttp[i]
 
         # Calcul STTP mean
-        sttp = df_sttp.reset_index().iloc[:, 0].mean()
+        ttp = df_ttp.reset_index().iloc[:, 0].mean()
 
-        # Calcul Cortical extension df_latence
-        df_latence = df_latence.reset_index().rename(columns={0: "Cort. Extent", "index": "Latence"})
-        df_latence.loc[:, "Latence"] = df_latence.loc[:, "Latence"] / 1000
+        # Calcul Cortical extension df_latency
+        df_latency = df_latency.reset_index().rename(columns={0: "Cort. Extent", "index": "Latency"})
+        df_latency.loc[:, "Latency"] = df_latency.loc[:, "Latency"] / 1000
 
-        dlatencedx = dt.compute_derivate_df(dt.compute_derivate_df(df_latence.set_index("Cort. Extent")))
-        dcortextentdt = dt.compute_derivate_df(df_latence.set_index("Latence"))
-        dlatencedx = dlatencedx.rename(columns={"Latence": "Derivate² latency"}).reset_index().drop(
+        dlatencydx = dt.compute_derivate_df(dt.compute_derivate_df(df_latency.set_index("Cort. Extent")))
+        dcortextentdt = dt.compute_derivate_df(df_latency.set_index("Latency"))
+        dlatencydx = dlatencydx.rename(columns={"Latency": "Derivate² latency"}).reset_index().drop(
             columns="Cort. Extent")
         dcortextentdt = dcortextentdt.rename(columns={"Cort. Extent": "Derivate cort extent"}).reset_index().drop(
-            columns="Latence")
+            columns="Latency")
 
-        df_param_derivates = df_latence.join(dlatencedx)
-        df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latence")
+        df_param_derivates = df_latency.join(dlatencydx)
+        df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latency")
 
         df_param_derivates.loc[:,"Derivate cort extent"] = abs(df_param_derivates.loc[:,"Derivate cort extent"])
 
@@ -647,25 +646,26 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
             latency_slope = df_param_derivates.iloc[:inflex_index-3].loc[:, "Derivate cort extent"].mean()
 
         # Calcul Stationary Latency
-        # s_latency = df_lat_dlat.iloc[inflex_index+1:].loc[:,"Latence"].mean()
         s_latency = df_param_derivates.iloc[inflex_index + 1:].index.to_series().mean() * 1000
 
         # Append lists one col to each curve
-        list_sttp.append(sttp)
-        list_s_latency.append(s_latency)
+        list_ttp.append(ttp)
+        list_stationary_latency.append(s_latency)
         list_inflex_point.append(inflex_point)
         list_latency_slope.append(latency_slope)
 
-        print(f"STTP : {sttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
+        print(f"TTP : {ttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
 
     print("Make plot...",end="")
-    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "STTP": list_sttp, "Stat. Latency": list_s_latency,
+    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "TTP": list_ttp, "Stat. Latency": list_stationary_latency,
                                           "Inflexion Point": list_inflex_point,
                                           "Latency Slope": list_latency_slope}).set_index("caract")
     display(df_measures)
+
+    # PLOTS
     fig, ax = plt.subplots(1, 2, figsize=(25, 10))
     ax2 = ax[1].twinx()
-    ax[0].plot(df_measures.loc[:, ["STTP"]], c="purple", marker="o", markersize=10, label="STTP")
+    ax[0].plot(df_measures.loc[:, ["TTP"]], c="purple", marker="o", markersize=10, label="TTP")
     ax[0].plot(df_measures.loc[:, ["Stat. Latency"]], c="red", marker="o", markersize=10,
                label="Stationnary latency")
     ax[1].plot(df_measures.loc[:, ["Inflexion Point"]], c="green", marker="o", markersize=10,
@@ -694,7 +694,7 @@ def make_STTP_latency_mean(path, list_df_latence, list_df_sttp, list_caract, xla
     str_save = ""
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
-    plt.savefig(f"{path}/STTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
+    plt.savefig(f"{path}/TTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
 
 
 def mean_section_graph(ax, function, index, frame, axis, params_sim, info_fig, params_plot, font_size, x_lim=False, arr_stim=False, ax_stim=False):
