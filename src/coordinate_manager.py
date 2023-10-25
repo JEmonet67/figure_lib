@@ -14,7 +14,7 @@ import numpy as np
 
 
 # TODO Be able to do horizontal and vertical lines to plot
-def get_horizontal_interval_macular_cell(n_cells, layer, first_cell, last_cell, step_cell=1):
+def get_interval_macular_cell(n_cells, layer, first_cell, last_cell, step_cell=1, axis = 0):
     """
     ### FUNCTION TO OBTAIN ID NUMBER OF A HORIZONTAL MACULAR CELL INTERVAL ###
 
@@ -29,11 +29,20 @@ def get_horizontal_interval_macular_cell(n_cells, layer, first_cell, last_cell, 
     Str with number separate by commat without spacing : (132,244,424).
 
     """
+    # Vertical axis (axis = 1)
+    if axis:
+        interval = ",".join([str(i) for i in range(
+            n_cells[0] * n_cells[1] * (layer) + n_cells[1] * int(np.floor(n_cells[0] / 2)) + (
+                        n_cells[1] - 1 - last_cell),
+            n_cells[0] * n_cells[1] * layer + n_cells[1] * int(np.floor(n_cells[0] / 2)) + n_cells[1] - first_cell,
+            step_cell)])
 
-    interval = ",".join \
-        ([str(i) for i in range(n_cells[0 ] *n_cells[1 ] *layer +int(np.ceil(n_cells[1 ] /2 ) +n_cells[1 ] *first_cell) ,
-                                               n_cells[0 ] *n_cells[1 ] *(layer +1 ) -n_cells[1 ] *(n_cells[0 ] -last_cell)
-                               ,n_cells[1 ] *step_cell)])
+    # Horizontal axis (axis = 0)
+    else:
+        interval = ",".join([str(i) for i in range(
+            n_cells[0] * n_cells[1] * layer + int(np.ceil(n_cells[1] / 2) + n_cells[1] * first_cell - 1),
+            n_cells[0] * n_cells[1] * (layer + 1) - n_cells[1] * (n_cells[0] - last_cell - 1),
+            n_cells[1] * step_cell)])
 
     return interval
 

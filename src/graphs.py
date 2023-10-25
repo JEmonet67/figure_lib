@@ -87,11 +87,23 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     Make a figure with of one graph.
 
     """
+    print("Load gdf")
     df = gdf.GraphDF(path ,params_sim["delta_t"] ,60 ,params_sim["n_cells_X"] ,params_sim["n_cells_Y"])
+    print("Crop gdf")
     df = df.crop(df.dt *params_sim["n_transient_frame"])
     df.data.index = df.data.index*1000 # index in ms
 
+    # Set main axis
+    if params_sim["axis"]: # Vertical axis (axis = 1)
+        n_main_axis = params_sim["n_cells_Y"]
+        n_second_axis = params_sim["n_cells_X"]
+    else: # Horizontal axis (axis = 0)
+        n_main_axis = params_sim["n_cells_X"]
+        n_second_axis = params_sim["n_cells_Y"]
+
+
     list_outputs = []
+    print("Compute macular cell num")
     # Macular cell numero computation and legend if needed
     for i in range(len(info_cells["num"])):
         # VSDI graphs
@@ -99,23 +111,23 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             # Multiple curve graphs
             if type(info_cells["num"][i][0] )==list:
                 if len(info_cells["num"][i][0]) == 2:
-                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i][0]) == 3:
-                    info_cells["num"][i][0] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2], axis=params_sim["axis"])
 
             if type(info_cells["num"][i][1] )==list:
                 if len(info_cells["num"][i][1]) == 2:
-                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i][1]) == 3:
-                    info_cells["num"][i][1] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2], axis=params_sim["axis"])
             # One curve graphs
             if info_cells["num"][i][0]==-1:
                 info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
@@ -127,12 +139,13 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                                        int(np.floor(params_sim["n_cells_Y"]/2))
 
 
-
+            print("Exc and Inh filtering.")
             exc = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][0]}')
             exc = exc.isolate_dataframe_byoutputs("muVn")
             inh = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i][1]}')
             inh = inh.isolate_dataframe_byoutputs("muVn")
 
+            print("Compute VSDI")
             #exc.data = (-(exc.data - exc.data.iloc[0].mean()) / exc.data.iloc[0].mean())
             #inh.data = (-(inh.data - inh.data.iloc[0].mean()) / inh.data.iloc[0].mean())
             exc.data = (-(exc.data - exc.data.iloc[0]) / exc.data.iloc[0])
@@ -146,26 +159,36 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
             vsdi = exc.copy()
             vsdi.data = exc.data *0.8 +inh.data *0.2
             if params_plot["center"]:
-                list_pos_col = [np.round(np.floor(
-                    (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
-                    params_sim["n_cells_Y"]) * params_sim["dx"], 2)
-                           for num in info_cells["num"][i][0].split(",")]
-                vsdi = vsdi.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"], params_sim["delta_t"])
-                #vsdi = vsdi.tmax_centering_df()
+                print("Centering VSDI")
+                if params_sim["axis"]: # Vertical axis
+                    list_pos_col = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
+                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
+                               for num in info_cells["num"][i][0].split(",")]
+                    list_pos_col.reverse()
+                    vsdi = vsdi.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"], params_sim["delta_t"])
+                    vsdi.reverse()
+
+                else: # Horizontal axis
+                    list_pos_col = [np.round(np.floor(
+                        (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
+                        params_sim["n_cells_Y"]) * params_sim["dx"], 2)
+                               for num in info_cells["num"][i][0].split(",")]
+                    vsdi = vsdi.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"], params_sim["delta_t"])
             list_outputs += [vsdi]
 
         # Classical macular outputs graphs
         else:
+
             # Multiple curve graphs
             if type(info_cells["num"][i])==list:
                 if len(info_cells["num"][i]) == 2:
-                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i]) == 3:
-                    info_cells["num"][i] = cm.get_horizontal_interval_macular_cell \
+                    info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2], axis=params_sim["axis"])
 
             # One curve graphs
             if info_cells["num"][i ]==-1:
@@ -175,28 +198,52 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
 
             output = df.isolate_dataframe_columns_bynum(f'{info_cells["num"][i]}')
             output = output.isolate_dataframe_byoutputs(info_cells["name_output"][i])
+
             if params_plot["center"]:
-                list_pos_col = [round(np.floor(
-                    (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
-                    params_sim["n_cells_Y"]) * params_sim["dx"], 2)
-                    for num in info_cells["num"][i].split(",")]
-                output = output.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"],
-                                            params_sim["delta_t"])
+                print("Centering Data")
+                if params_sim["axis"]: # Vertical axis
+                    list_pos_col = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
+                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
+                               for num in info_cells["num"][i].split(",")]
+                    list_pos_col.reverse()
+                    output = output.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"],
+                                                    params_sim["delta_t"])
+                    output.reverse()
+                else:
+                    list_pos_col = [round(np.floor(
+                        (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
+                        params_sim["n_cells_Y"]) * params_sim["dx"], 2)
+                        for num in info_cells["num"][i].split(",")]
+                    output = output.rf_centering_df(list_pos_col, params_sim["speed"], params_sim["size_bar"],
+                                                    params_sim["delta_t"])
                 #output =output.tmax_centering_df()
+
             list_outputs += [output]
 
 
-
+        print("Set legend")
         # Legend name generation for coordinates in degree selected
         if info_fig["legend"][i]=="coord_degree":
             if info_cells["name_output"][i] == "VSDI":
-                info_fig["legend"][i] = \
-                    [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
-                    for num in str(info_cells["num"][i][0]).split(",")]
+                if params_sim["axis"]: # Vertical axis
+                    info_fig["legend"][i] = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
+                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
+                               for num in info_cells["num"][i][0].split(",")]
+                    #info_fig["legend"][i].reverse()
+                else: # Horizontal axis
+                    info_fig["legend"][i] = \
+                        [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
+                        for num in str(info_cells["num"][i][0]).split(",")]
             else:
-                info_fig["legend"][i] = [
-                    f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
-                    for num in str(info_cells["num"][i]).split(",")]
+                if params_sim["axis"]: # Vertical axis
+                    info_fig["legend"][i] = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
+                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
+                               for num in info_cells["num"][i].split(",")]
+                    #info_fig["legend"][i].reverse()
+                else: # Horizontal axis
+                    info_fig["legend"][i] = [
+                        f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
+                        for num in str(info_cells["num"][i]).split(",")]
         # elif info_fig["legend"][i] = []: # Add specific legend
 
     f = gfg.graphFigure(list_outputs, len(list_outputs), 1, 20, 20, dict_info_fig=info_fig,
@@ -207,6 +254,7 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     plt.tight_layout(pad=3)
 
     # Set graph post production treatment
+    print("Plot")
     # For multiple graph figures
     if type(f.ax) == np.ndarray:
         for i in range(len(f.ax)):
@@ -421,8 +469,8 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul VSDI
         print("Isolate cortical column outputs...", end="")
         df_muV = df.isolate_dataframe_byoutputs("muVn")
-        num_exc = cm.get_horizontal_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, 0, params_sim["n_cells_X"])
-        num_inh = cm.get_horizontal_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, 0, params_sim["n_cells_X"])
+        num_exc = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, 0, params_sim["n_cells_X"])
+        num_inh = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, 0, params_sim["n_cells_X"])
         print("num...", end="")
         exc = df_muV.isolate_dataframe_columns_bynum(num_exc)
         inh = df_muV.isolate_dataframe_columns_bynum(num_inh)
@@ -610,12 +658,14 @@ def make_graph_duration_ttp_latency(path, df_latency, df_ttp, list_name_caract, 
 
 
 def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xlabel, params_sim):
-    list_ttp = []
+    list_stationary_peak_delay = []
+    list_stationary_end_latency_delay = []
     list_inflex_point = []
-    list_latency_slope = []
-    list_stationary_latency = []
+    list_start_latency_speed = []
+    list_end_latency_speed = []
+    list_peak_speed = []
 
-    list_df_duration_latency, list_df_duration_ttp = dt.delay_to_duration(list_df_latency, list_df_ttp, params_sim)
+    list_df_duration_latency, list_df_duration_ttp = dt.delay_to_time(list_df_latency, list_df_ttp, params_sim, list_caract)
 
     for i in range(0, len(list_df_latency)):
         str_to_print = ""
@@ -625,14 +675,144 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
         df_latency = list_df_latency[i]
         df_ttp = list_df_ttp[i]
 
-        # Calcul STTP mean
-        ttp = df_ttp.reset_index().iloc[:, 0].mean()
+        # Compute stationnary time to peak (STTP)
+        sttp = df_ttp.reset_index().iloc[:, 0].mean()
 
-        # Calcul Cortical extension df_latency
+        # Set up DataFrames Cort Extent : Latency.
+        df_param_derivates = df_latency.copy()
+        df_param_derivates = df_param_derivates.reset_index().rename(columns={0: "Cort. Extent", "index": "Latency delay"})
+        df_param_derivates.loc[:, "Latency delay"] = df_param_derivates.loc[:, "Latency delay"] / 1000
+        df_param_derivates = df_param_derivates.set_index("Cort. Extent")
+
+        # Add latency and peak time in the dataframe Cort Extent : Latency.
+        df_param_derivates["Latency time"] = list_df_duration_latency[i].index.values / 1000
+        df_param_derivates["Peak time"] = list_df_duration_ttp[i].index.values / 1000
+
+
+
+        # Compute derivates Cort Extent/latency time and Cort Extent/peak time.
+        df_param_derivates["Derivate cortExt latencyTime"] = dt.compute_derivate_df(df_param_derivates[["Latency time"]]
+                                                            .reset_index().set_index("Latency time")).iloc[:,0].values
+
+        df_param_derivates["Derivate cortExt peakTime"] = dt.compute_derivate_df(df_param_derivates[["Peak time"]]
+                                                            .reset_index().set_index("Peak time")).iloc[:,0].values
+
+        df_param_derivates["Derivate² latencyTime cortExt"] = dt.compute_derivate_df(
+            dt.compute_derivate_df(df_param_derivates[["Latency time"]].reset_index().set_index("Cort. Extent"))).iloc[:, 0].values
+
+        # Compute inflexion point
+        inflex_index = df_param_derivates.reset_index().loc[:, "Derivate² latencyTime cortExt"].idxmax()
+        inflex_point = df_param_derivates.index[inflex_index]
+
+        # Compute stationary end latency delay
+        s_latency = abs(df_param_derivates.loc[:,"Latency delay"].iloc[17:].mean())*1000
+
+        # Compute speeds
+        if inflex_point == None:
+            start_latency_speed = np.NaN
+            inflex_point = np.NaN
+        else:
+            #latency_slope = df_param_derivates.iloc[:inflex_index-2].loc[:, "Derivate cort extent"].mean()
+            start_latency_speed = df_param_derivates.loc[:,"Derivate cortExt latencyTime"].iloc[:inflex_index-2].mean()
+            end_latency_speed = df_param_derivates.loc[:,"Derivate cortExt latencyTime"].iloc[inflex_index+3:].mean()
+            peak_speed = df_param_derivates.loc[:,"Derivate cortExt peakTime"].mean()
+
+        # Append lists one col to each curve
+        list_stationary_peak_delay.append(sttp)
+        list_stationary_end_latency_delay.append(s_latency)
+        list_inflex_point.append(inflex_point)
+        list_start_latency_speed.append(start_latency_speed)
+        list_end_latency_speed.append(end_latency_speed)
+        list_peak_speed.append(peak_speed)
+
+
+        print(f"TTP : {sttp} ms\n"
+              f"Stationary end latency : {s_latency} ms\n"
+              f"Inflexion Point : {inflex_point}°\n"
+              f"Start latency speed : {start_latency_speed}°/s\n"
+              f"End latency speed : {end_latency_speed}°/s\n"
+              f"Peak speed : {peak_speed}°/s\n")
+
+    print("Make plot...",end="")
+    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]],
+                                          "STTP": list_stationary_peak_delay,
+                                          "Stationary end latency": list_stationary_end_latency_delay,
+                                          "Inflexion Point": list_inflex_point,
+                                          "Start latency speed": list_start_latency_speed,
+                                          "End latency speed":list_end_latency_speed,
+                                          "Peak speed":list_peak_speed}).set_index("caract",)
+    display(df_measures)
+
+    # PLOTS
+    fig, ax = plt.subplots(1, 3, figsize=(25, 10))
+    #ax2 = ax[1].twinx()
+    ax[0].plot(df_measures.loc[:, ["STTP"]], c="purple", marker="o", markersize=10, label="STTP")
+    ax[0].plot(df_measures.loc[:, ["Stationary end latency"]], c="red", marker="o", markersize=10,
+               label="Stationary end latency")
+
+    ax[1].plot(df_measures.loc[:, ["Inflexion Point"]], c="green", marker="o", markersize=10,
+               label="Cortical extent")
+
+    ax[2].plot(df_measures.loc[:, ["Start latency speed"]], c="deepskyblue", marker="o", markersize=10,
+               label="Start latency speed")
+    ax[2].plot(df_measures.loc[:, ["End latency speed"]], c="red", marker="o", markersize=10,
+               label="End latency speed")
+    ax[2].plot(df_measures.loc[:, ["Peak speed"]], c="purple", marker="o", markersize=10,
+               label="Peak speed")
+
+    ax[0].legend(fontsize=15)
+    ax[1].legend(fontsize=15)
+    ax[2].legend(fontsize=15)
+
+    ax[0].set_ylabel("Time (ms)", fontsize=25, labelpad=5)
+    ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
+    ax[2].set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
+
+    #ax[0].yaxis.set_ticks(np.array([i for i in range(-900, 300, 200)]))
+    ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
+    #ax[2].yaxis.set_ticks(np.array([i for i in range(0, 50, 5)]))
+
+    for axe in [ax[0], ax[1], ax[2]]:
+        axe.set_xlabel(xlabel, fontsize=25, labelpad=20)
+        # ax.set_title(f"Latency and time to peak as function of cortical space\nwith white bar moving at {speed_stim}°/s", fontsize=35, fontweight="bold", pad=40)
+        axe.tick_params(axis="x", which="both", labelsize=25, color="black", length=7, width=2)
+        axe.tick_params(axis="y", which="both", labelsize=25, color="black", length=7, width=2)
+    fig.tight_layout(pad=5)
+    str_save = ""
+    for c, caract in enumerate(list_caract[0]):
+        str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
+    plt.savefig(f"{path}/TTP_latency_means{str_save}_newVSDI.png", bbox_inches='tight')
+
+
+def make_ttp_latency_summary_old(path, list_df_latency, list_df_ttp, list_caract, xlabel, params_sim):
+    list_stationary_peak_delay = []
+    list_stationary_end_latency_delay = []
+    list_inflex_point = []
+    list_start_latency_speed = []
+    list_end_latency_speed = []
+    list_peak_speed = []
+
+    list_df_duration_latency, list_df_duration_ttp = dt.delay_to_time(list_df_latency, list_df_ttp, params_sim, list_caract)
+
+    for i in range(0, len(list_df_latency)):
+        str_to_print = ""
+        for c,caract in enumerate(list_caract[0]):
+            str_to_print += f"### {list_caract[0][c]} : {list_caract[1][i][c]}{list_caract[2][c]} ###"
+        print(str_to_print)
+        df_latency = list_df_latency[i]
+        df_ttp = list_df_ttp[i]
+
+        # Compute stationnary time to peak (STTP)
+        sttp = df_ttp.reset_index().iloc[:, 0].mean()
+
+        # Compute Cortical extension df_latency
         df_latency = df_latency.reset_index().rename(columns={0: "Cort. Extent", "index": "Latency"})
         df_latency.loc[:, "Latency"] = df_latency.loc[:, "Latency"] / 1000
 
+        # Compute derivates
         dlatencydx = dt.compute_derivate_df(dt.compute_derivate_df(df_latency.set_index("Cort. Extent")))
+        plt.plot(dlatencydx)
+        plt.figure()
         dcortextentdt = dt.compute_derivate_df(df_latency.set_index("Latency"))
         dlatencydx = dlatencydx.rename(columns={"Latency": "Derivate² latency"}).reset_index().drop(
             columns="Cort. Extent")
@@ -641,34 +821,40 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
 
         df_param_derivates = df_latency.join(dlatencydx)
         df_param_derivates = df_param_derivates.join(dcortextentdt).set_index("Latency")
+        display(df_param_derivates)
 
         df_param_derivates.loc[:,"Derivate cort extent"] = abs(df_param_derivates.loc[:,"Derivate cort extent"])
 
+        # Compute inflexion point
         inflex_index = df_param_derivates.reset_index().loc[:, "Derivate² latency"].idxmax()
         inflex_point = df_param_derivates.loc[:, "Cort. Extent"].iloc[inflex_index]
 
-        # Calcul Latency slope
+        # Compute stationary end latency delay
+        s_latency = df_param_derivates.iloc[inflex_index + 1:].index.to_series().mean() * 1000
+
+        # Compute speeds
         if inflex_point == None:
             latency_slope = np.NaN
             inflex_point = np.NaN
         else:
             latency_slope = df_param_derivates.iloc[:inflex_index-3].loc[:, "Derivate cort extent"].mean()
+            start_latency_speed = 0
+            end_latency_speed = 0
+            peak_speed = 0
 
-        # Calcul Stationary Latency
-        s_latency = df_param_derivates.iloc[inflex_index + 1:].index.to_series().mean() * 1000
 
         # Append lists one col to each curve
-        list_ttp.append(ttp)
-        list_stationary_latency.append(s_latency)
+        list_stationary_peak_delay.append(sttp)
+        list_stationary_end_latency_delay.append(s_latency)
         list_inflex_point.append(inflex_point)
-        list_latency_slope.append(latency_slope)
+        list_start_latency_speed.append(latency_slope)
 
-        print(f"TTP : {ttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
+        print(f"TTP : {sttp} ms\nInflexion Point : {inflex_point}°\nLatency Slope : {latency_slope} °/s\nStationary Latency : {s_latency} ms\n")
 
     print("Make plot...",end="")
-    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "TTP": list_ttp, "Stat. Latency": list_stationary_latency,
+    df_measures = pd.DataFrame.from_dict({"caract": [c[0] for c in list_caract[1]], "TTP": list_stationary_peak_delay, "Stat. Latency": list_stationary_end_latency_delay,
                                           "Inflexion Point": list_inflex_point,
-                                          "Latency Slope": list_latency_slope}).set_index("caract")
+                                          "Latency Slope": list_start_latency_speed}).set_index("caract")
     display(df_measures)
 
     # PLOTS
@@ -690,7 +876,7 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax2.set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
 
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-4000, 1700, 400)]))
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-900, 300, 200)]))
     ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
 
     for axe in [ax[0], ax[1], ax2]:
@@ -703,7 +889,7 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
     str_save = ""
     for c, caract in enumerate(list_caract[0]):
         str_save += f"_{list_caract[0][c]}_{list_caract[1][0][c]}to{list_caract[1][-1][c]}{list_caract[2][c]}"
-    plt.savefig(f"{path}/TTP_latency_means{str_save}_newVSDI_corrected.png", bbox_inches='tight')
+    plt.savefig(f"{path}/TTP_latency_means{str_save}_newVSDI.png", bbox_inches='tight')
 
 
 def mean_section_graph(ax, function, index, frame, axis, params_sim, info_fig, params_plot, font_size, x_lim=False, arr_stim=False, ax_stim=False):
