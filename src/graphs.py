@@ -93,15 +93,6 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     df = df.crop(df.dt *params_sim["n_transient_frame"])
     df.data.index = df.data.index*1000 # index in ms
 
-    # Set main axis
-    if params_sim["axis"]: # Vertical axis (axis = 1)
-        n_main_axis = params_sim["n_cells_Y"]
-        n_second_axis = params_sim["n_cells_X"]
-    else: # Horizontal axis (axis = 0)
-        n_main_axis = params_sim["n_cells_X"]
-        n_second_axis = params_sim["n_cells_Y"]
-
-
     list_outputs = []
     print("Compute macular cell num")
     # Macular cell numero computation and legend if needed
@@ -113,21 +104,21 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                 if len(info_cells["num"][i][0]) == 2:
                     info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1]-1, axis=params_sim["axis"])
                 elif len(info_cells["num"][i][0]) == 3:
                     info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1]-1 ,info_cells["num"][i][0][2], axis=params_sim["axis"])
 
             if type(info_cells["num"][i][1] )==list:
                 if len(info_cells["num"][i][1]) == 2:
                     info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1], axis=params_sim["axis"])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1]-1, axis=params_sim["axis"])
                 elif len(info_cells["num"][i][1]) == 3:
                     info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1]-1 ,info_cells["num"][i][1][2], axis=params_sim["axis"])
             # One curve graphs
             if info_cells["num"][i][0]==-1:
                 info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
@@ -184,11 +175,11 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                 if len(info_cells["num"][i]) == 2:
                     info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1]-1, axis=params_sim["axis"])
                 elif len(info_cells["num"][i]) == 3:
                     info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1]-1 ,info_cells["num"][i][2], axis=params_sim["axis"])
 
             # One curve graphs
             if info_cells["num"][i ]==-1:
@@ -469,8 +460,8 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul VSDI
         print("Isolate cortical column outputs...", end="")
         df_muV = df.isolate_dataframe_byoutputs("muVn")
-        num_exc = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, 0, params_sim["n_cells_X"])
-        num_inh = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, 0, params_sim["n_cells_X"])
+        num_exc = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, 0, params_sim["n_cells_X"]-1)
+        num_inh = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, 0, params_sim["n_cells_X"]-1)
         print("num...", end="")
         exc = df_muV.isolate_dataframe_columns_bynum(num_exc)
         inh = df_muV.isolate_dataframe_columns_bynum(num_inh)
@@ -578,7 +569,7 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
     dict_latency_ttp_caract = {"caract":list_caract,
                                 "latency":list_df_latency,
                                 "sttp":list_df_ttp}
-    with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
+    with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter_zoomed", "wb") as file:  # Pickling
         pickle.dump(dict_latency_ttp_caract, file)
 
     return list_df_latency, list_df_ttp, list_caract
@@ -705,7 +696,7 @@ def make_ttp_latency_summary(path, list_df_latency, list_df_ttp, list_caract, xl
         inflex_point = df_param_derivates.index[inflex_index]
 
         # Compute stationary end latency delay
-        s_latency = abs(df_param_derivates.loc[:,"Latency delay"].iloc[17:].mean())*1000
+        s_latency = df_param_derivates.loc[:,"Latency delay"].iloc[17:].mean()*1000
 
         # Compute speeds
         if inflex_point == None:

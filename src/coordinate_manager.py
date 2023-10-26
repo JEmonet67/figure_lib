@@ -29,6 +29,7 @@ def get_interval_macular_cell(n_cells, layer, first_cell, last_cell, step_cell=1
     Str with number separate by commat without spacing : (132,244,424).
 
     """
+    print(n_cells, layer, first_cell, last_cell, step_cell, axis)
     # Vertical axis (axis = 1)
     if axis:
         interval = ",".join([str(i) for i in range(
