@@ -430,6 +430,9 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
     list_df_ttp = []
     list_list_value_caract = []
 
+    first_cell = 5
+    last_cell = params_sim["n_cells_X"]-6
+
     print("Files browsing.")
     i = 0
     for file in files:
@@ -460,8 +463,8 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul VSDI
         print("Isolate cortical column outputs...", end="")
         df_muV = df.isolate_dataframe_byoutputs("muVn")
-        num_exc = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, 0, params_sim["n_cells_X"]-1)
-        num_inh = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, 0, params_sim["n_cells_X"]-1)
+        num_exc = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 3, first_cell, last_cell)
+        num_inh = cm.get_interval_macular_cell((params_sim["n_cells_X"], params_sim["n_cells_Y"]), 4, first_cell, last_cell)
         print("num...", end="")
         exc = df_muV.isolate_dataframe_columns_bynum(num_exc)
         inh = df_muV.isolate_dataframe_columns_bynum(num_inh)
@@ -482,7 +485,7 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul temps centre barre milieu champ récepteur (t0)
         print("Compute t0 bar center on middle RF...", end="")
         list_barcenter = [np.round(((np.round(x_col * params_sim["dx"], 2) + params_sim["size_bar"] / 2) / speed - params_sim["delta_t"]), 2)
-                          for x_col in range(params_sim["n_cells_X"])]
+                          for x_col in range(first_cell, last_cell + 1)]
         print("Done !")
 
 
@@ -501,15 +504,15 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         # Calcul de la STTP
         print("Compute TTP and latency delays...", end="")
         list_ttp = [(list_max_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_max_vsdi))]
-        list_ttp = list_ttp[6:params_sim["n_cells_X"]-4]
+        #list_ttp = list_ttp[6:params_sim["n_cells_X"]-4]
         list_latency = [(list_inflex_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_inflex_vsdi))]
-        list_latency = list_latency[6:params_sim["n_cells_X"]-4]
+        #list_latency = list_latency[6:params_sim["n_cells_X"]-4]
 
         print("Done!")
 
         print("Make TTP and latency delays dataframes")
-        df_ttp = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_ttp)
-        df_latency = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(5+1, params_sim["n_cells_X"]-5+1)], index=list_latency)
+        df_ttp = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(first_cell, last_cell + 1)], index=list_ttp)
+        df_latency = pd.DataFrame([round(i*params_sim["dx"],2) for i in range(first_cell, last_cell + 1)], index=list_latency)
         list_df_latency.append(df_latency)
         list_df_ttp.append(df_ttp)
 
@@ -561,7 +564,7 @@ def make_ttp_latency_graph(path, params_sim, params_plot, dict_re):
         else:
             ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
 
-        plt.savefig(f"{path}/TTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight' )
+        plt.savefig(f"{path}/TTP_latency_{ext_filename}_newVSDI_rfCenter_zoomed.png", bbox_inches='tight' )
 
         i+=1
 
