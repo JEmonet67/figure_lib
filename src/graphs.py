@@ -182,7 +182,7 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                         ,info_cells["num"][i][0] ,info_cells["num"][i][1]-1 ,info_cells["num"][i][2], axis=params_sim["axis"])
 
             # One curve graphs
-            if info_cells["num"][i ]==-1:
+            if info_cells["num"][i]==-1:
                 info_cells["num"][i] = params_sim["n_cells_X"]*params_sim["n_cells_Y"]*info_cells["layer"][i] + \
                                        params_sim["n_cells_Y"]*(int(np.ceil(params_sim["n_cells_X"]/2))-1)+\
                                        int(np.floor(params_sim["n_cells_Y"]/2))
@@ -216,25 +216,35 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
         # Legend name generation for coordinates in degree selected
         if info_fig["legend"][i]=="coord_degree":
             if info_cells["name_output"][i] == "VSDI":
-                if params_sim["axis"]: # Vertical axis
-                    info_fig["legend"][i] = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) /
-                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
-                               for num in info_cells["num"][i][0].split(",")]
-                    #info_fig["legend"][i].reverse()
-                else: # Horizontal axis
-                    info_fig["legend"][i] = \
-                        [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
-                        for num in str(info_cells["num"][i][0]).split(",")]
+                if type(info_cells["num"][i]) == list:
+                    if params_sim["axis"]: # Vertical axis
+                        info_fig["legend"][i] = [f'''{np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)}°'''
+                                   for num in info_cells["num"][i][0].split(",")]
+                        #info_fig["legend"][i].reverse()
+                    else: # Horizontal axis
+                        info_fig["legend"][i] = \
+                            [f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
+                            for num in str(info_cells["num"][i][0]).split(",")]
+
+                elif type(info_cells["num"][i]) == int:
+                    info_fig["legend"][i] = f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
+
             else:
-                if params_sim["axis"]: # Vertical axis
-                    info_fig["legend"][i] = [np.round(np.round((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
-                                params_sim["n_cells_Y"]%1*41,0)* params_sim["dx"],2)
-                               for num in info_cells["num"][i].split(",")]
-                    #info_fig["legend"][i].reverse()
-                else: # Horizontal axis
-                    info_fig["legend"][i] = [
-                        f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
-                        for num in str(info_cells["num"][i]).split(",")]
+                if type(info_cells["num"][i]) == list:
+                    if params_sim["axis"]: # Vertical axis
+                        info_fig["legend"][i] = [f'''{np.round(np.round(
+                            (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
+                            params_sim["n_cells_Y"] % 1 * 41, 0) * params_sim["dx"], 2)}°'''
+                                   for num in info_cells["num"][i].split(",")]
+                        #info_fig["legend"][i].reverse()
+                    else: # Horizontal axis
+                        info_fig["legend"][i] = [
+                            f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
+                            for num in str(info_cells["num"][i]).split(",")]
+
+                elif type(info_cells["num"][i]) == int:
+                    info_fig["legend"][i] = [f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°']
+
         # elif info_fig["legend"][i] = []: # Add specific legend
 
     f = gfg.graphFigure(list_outputs, len(list_outputs), 1, 20, 20, dict_info_fig=info_fig,
@@ -242,7 +252,8 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     # f,ax = plt.subplots(1,1, figsize = (20,20))
     # ax.plot(list_outputs[0].data)
 
-    plt.tight_layout(pad=3)
+    #plt.tight_layout(pad=3)
+    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.9)
 
     # Set graph post production treatment
     print("Plot")
