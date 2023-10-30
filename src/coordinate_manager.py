@@ -32,8 +32,7 @@ def get_interval_macular_cell(n_cells, layer, first_cell, last_cell, step_cell=1
     # Vertical axis (axis = 1)
     if axis:
         interval = ",".join([str(i) for i in range(
-            n_cells[0] * n_cells[1] * (layer) + n_cells[1] * int(np.floor(n_cells[0] / 2)) + (
-                        n_cells[1] - 1 - last_cell),
+            n_cells[0] * n_cells[1] * layer + n_cells[1] * int(np.floor(n_cells[0] / 2)) + (n_cells[1] - 1 - last_cell),
             n_cells[0] * n_cells[1] * layer + n_cells[1] * int(np.floor(n_cells[0] / 2)) + n_cells[1] - first_cell,
             step_cell)])
 

@@ -104,21 +104,21 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                 if len(info_cells["num"][i][0]) == 2:
                     info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1]-1, axis=params_sim["axis"])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i][0]) == 3:
                     info_cells["num"][i][0] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][0]
-                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1]-1 ,info_cells["num"][i][0][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0][0] ,info_cells["num"][i][0][1] ,info_cells["num"][i][0][2], axis=params_sim["axis"])
 
             if type(info_cells["num"][i][1] )==list:
                 if len(info_cells["num"][i][1]) == 2:
                     info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1]-1, axis=params_sim["axis"])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i][1]) == 3:
                     info_cells["num"][i][1] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i][1]
-                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1]-1 ,info_cells["num"][i][1][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][1][0] ,info_cells["num"][i][1][1] ,info_cells["num"][i][1][2], axis=params_sim["axis"])
             # One curve graphs
             if info_cells["num"][i][0]==-1:
                 info_cells["num"][i][0] = params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i][0] + \
@@ -175,11 +175,11 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                 if len(info_cells["num"][i]) == 2:
                     info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1]-1, axis=params_sim["axis"])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1], axis=params_sim["axis"])
                 elif len(info_cells["num"][i]) == 3:
                     info_cells["num"][i] = cm.get_interval_macular_cell \
                         ((params_sim["n_cells_X"] ,params_sim["n_cells_Y"]) ,info_cells["layer"][i]
-                        ,info_cells["num"][i][0] ,info_cells["num"][i][1]-1 ,info_cells["num"][i][2], axis=params_sim["axis"])
+                        ,info_cells["num"][i][0] ,info_cells["num"][i][1] ,info_cells["num"][i][2], axis=params_sim["axis"])
 
             # One curve graphs
             if info_cells["num"][i]==-1:
@@ -253,7 +253,7 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     # ax.plot(list_outputs[0].data)
 
     #plt.tight_layout(pad=3)
-    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.9)
+    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.10, top=0.89)
 
     # Set graph post production treatment
     print("Plot")
