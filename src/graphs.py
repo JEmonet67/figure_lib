@@ -5,7 +5,6 @@ import seaborn as sns
 import matplotlib as mpl
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
-
 import postproduction as post
 import data_transformation as dt
 import make_figure.graphFigure as gfg
@@ -46,7 +45,6 @@ def plot_one_output(ax, output, index):
     Make one curve in the plot.
 
     """
-
 def make_graph(ax, dict_arrays, dict_index, params_sim, info_cells, info_fig, params_fig, font_size, params_plot, save=True):
     """
     ### FUNCTION TO PLOT ALL WANTED CELL OUTPUT IN FUNCTION OF A GIVEN INDEX ###
@@ -70,7 +68,6 @@ def make_graph(ax, dict_arrays, dict_index, params_sim, info_cells, info_fig, pa
         # TODO Make plot with the filtred list arrays
         # TODO Make legend
         # TODO Set graph post production treatment
-
 
 
 def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
@@ -445,6 +442,7 @@ def make_graph_peak_latency_delays(path, df_latency, df_ttp, list_name_caract, l
                   for i in range(0, n_main_axis + 1, 1)][6:n_main_axis - 3]
 
     fig, ax = plt.subplots(1, 1, figsize=(15, 15))
+    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.10, top=0.89)
     ax.plot(df_ttp, c="black")
     plt.scatter(df_ttp.index, df_ttp.iloc[:, 0], label="Time to peak", marker='^', s=200, c=list_color)
 
@@ -597,7 +595,7 @@ def make_peak_latency_summary_graph(fig, ax, path, df_measures, list_caract, xla
     # Plot spatial graph
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax[1].plot(df_measures.loc[:, "Inflexion point"], c="green", marker="o", markersize=10,
-               label="Cortical extent")
+               label="Inflexion point")
     ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
 
     # Plot speed graph
@@ -608,7 +606,7 @@ def make_peak_latency_summary_graph(fig, ax, path, df_measures, list_caract, xla
                label="End latency speed")
     ax[2].plot(df_measures.loc[:, "Peak speed"], c="purple", marker="o", markersize=10,
                label="Peak speed")
-    ax[2].yaxis.set_ticks(np.array([i for i in range(0, 55, 10)]))
+    ax[2].yaxis.set_ticks(np.array([i for i in range(0, 31, 10)]))
 
     # Set global parameters values
     for axe in [ax[0], ax[1], ax[2]]:
@@ -677,3 +675,4 @@ def mean_section_graph(ax, function, index, frame, axis, params_sim, info_fig, p
     if arr_stim!=False:
         #arr_stim = arr_stim[params_sim["n_transient_frame"]:-(len(arr_stim) - params_sim["n_transient_frame"] - function.shape[-1])]
         ax_stim.imshow(arr_stim[frame], aspect='auto', cmap='Greys_r')
+
