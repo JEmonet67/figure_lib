@@ -70,7 +70,7 @@ def make_graph(ax, dict_arrays, dict_index, params_sim, info_cells, info_fig, pa
         # TODO Set graph post production treatment
 
 
-def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
+def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_size, params_plot):
     """
     ### FUNCTION TO PLOT CELL OUTPUT IN FUNCTION OF TIME ###
 
@@ -82,12 +82,6 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
     Make a figure with of one graph.
 
     """
-    print("Load gdf")
-    df = gdf.GraphDF(path ,params_sim["delta_t"] ,60 ,params_sim["n_cells_X"] ,params_sim["n_cells_Y"])
-    print("Crop gdf")
-    df = df.crop(df.dt *params_sim["n_transient_frame"])
-    df.data.index = df.data.index*1000 # index in ms
-
     list_outputs = []
     print("Compute macular cell num")
     # Macular cell numero computation and legend if needed
@@ -225,19 +219,22 @@ def plot_one_graph(path, params_sim, info_cells, info_fig, params_fig, font_size
                     info_fig["legend"][i] = f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
 
             else:
-                if type(info_cells["num"][i]) == list:
+                if type(info_cells["num"][i]) == str:
                     if params_sim["axis"]: # Vertical axis
                         info_fig["legend"][i] = [f'''{np.round(np.round(
                             (int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) /
                             params_sim["n_cells_Y"] % 1 * 41, 0) * params_sim["dx"], 2)}°'''
                                    for num in info_cells["num"][i].split(",")]
+
                         #info_fig["legend"][i].reverse()
                     else: # Horizontal axis
                         info_fig["legend"][i] = [
                             f'{round(np.floor((int(num) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°'
                             for num in str(info_cells["num"][i]).split(",")]
 
+
                 elif type(info_cells["num"][i]) == int:
+                    print(3)
                     info_fig["legend"][i] = [f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°']
 
         # elif info_fig["legend"][i] = []: # Add specific legend
