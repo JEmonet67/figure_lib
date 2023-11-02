@@ -94,8 +94,8 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
     print("DFs DONE")
 
     arr_index = np.concatenate(arr_index)  # Concaténation listes arrays d'index.
-    for key in dict_arr_outputs:  # Parcours des outputs type cellule
-        dict_arr_index[key] = arr_index
+    for key in set(dict_arr_outputs.keys()):  # Parcours des outputs type cellule
+        dict_arr_outputs[f"{key}_index"] = arr_index
         dict_arr_outputs[key] = np.concatenate(dict_arr_outputs[key],
                                                axis=-1)  # Concaténation des listes d'array des dataframe de 2000 lignes
         dict_arr_outputs[key] = np.rot90(dict_arr_outputs[key]) # Conversion coordonnées numpy to macular
@@ -108,7 +108,7 @@ def import_csv_to_array(path_csv, params_sim, dict_re):
 
     print("END")
 
-    return dict_arr_outputs, dict_arr_index
+    return dict_arr_outputs
 
 def compile_regexp():
     """
