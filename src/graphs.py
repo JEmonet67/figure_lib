@@ -364,8 +364,8 @@ def heatmap_video_function(name_function, function, path_video, dt, n_cells, leg
         plt.close()
 
         c += 1
-        # TODO : Changer pour mettre moviepy
-        hf.images_to_video_cv2(f"{name_function}_newVSDI.mp4", list_frames, c=True, path_video=path_video, fps=fps)
+    # TODO : Changer pour mettre moviepy
+    hf.images_to_video_cv2(f"{name_function}_newVSDI.mp4", list_frames, c=True, path_video=path_video, fps=fps)
 
 # TODO
 #def heatmap_video_activity_region_function(name_function, function, path_video, dt, n_cells, legend, fps, bin_value):

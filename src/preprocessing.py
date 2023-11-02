@@ -26,6 +26,7 @@ def import_multiple_csv_to_array(path_csv, params_sim, outputs, celltypes, dict_
     """
 # TODO : Axis x and y have been shifted, need to correct it
 # TODO : Vérifier le nombre d'éléments dans l'index avant et après modification de la manière de retirer le transient
+# TODO : Fusionner les dictionnaires outputs et index en faisant des des clés avec output_celltype_index
 def import_csv_to_array(path_csv, params_sim, dict_re):
     """
     ### FUNCTION TO IMPORT ONE CSV FILE INTO A DICTIONNARY OF ARRAYS ###

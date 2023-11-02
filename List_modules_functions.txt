@@ -1,0 +1,108 @@
+                                             #############################################
+                                             #        LIST MODULES AND FUNCTIONS         #
+                                             #############################################
+
+
+                # PACKAGE src
+
+        -------- graphs --------
+plot_one_graph : Fonction pour créer un gdf à partir d'un csv, calculer les ID macular à conserver, filtrer, calculer le VSDI, centrer ou non et ploter avec légendes
+
+heatmap_video_function : Fonction qui binarise l'array de mesure, calcul max/min, redéfinie dictionnaires paramètres, plot heatmap puis crée vidéo.
+
+heatmap_picture_function : Fonction qui plot des heatmaps dans un range de frame défini.
+
+make_multiple_graph_peak_latency_delays : Fonction qui plot les graphes de délai du pic et de la latence pour chaque dataframe présent dans une liste.
+
+make_graph_peak_latency_delays : Fonction qui plot un graphe de délai du pic et de la latence.
+
+make_multiple_graph_peak_latency_fit_time : Fonction qui fit et plot les graphes de temps au pic et à la latence de plusieurs dataframe dans une liste.
+
+make_graph_peak_latency_fit_time : Fonction qui plot les graphes de temps au pic et à la latence d'un dataframe ainsi que leur fit.
+
+make_peak_latency_summary_graph : Fonction qui plot graphique résumé des paramètres de pic et latence à partir du dataframe de mesure correspondant.
+
+mean_section_graph : Fonction qui calcul la section horizontal ou vertical moyenne et la plot avec ou sans stimulus à côté.
+
+        -------- preprocessing --------
+
+
+
+        -------- coordinate_manager --------
+
+
+
+
+        -------- data_computation --------
+
+
+
+
+
+        -------- data_transformation --------
+
+
+
+
+        -------- postproduction --------
+highlight_x_interval : Fonction qui crée une zone rectangulaire de couleur sur un graphe pour mettre en évidence une partie de ce dernier.
+
+                # PACKAGE data_transform
+
+
+        -------- GraphDF --------
+
+
+
+        -------- GraphColumn --------
+
+
+        -------- info_sim_function --------
+
+
+        -------- listMatrix2D --------
+
+
+
+        -------- measures_column --------
+
+
+
+        -------- measures_gdf --------
+
+
+                # PACKAGE get_infos
+
+        -------- info_cell --------
+
+
+        -------- info_grid --------
+
+
+        -------- info_retina_mm --------
+
+
+        -------- info_sim --------
+
+
+        -------- info_stim --------
+
+
+                # PACKAGE make_figure
+
+        -------- curve --------
+
+
+        -------- graph --------
+
+
+        -------- figure --------
+
+
+        -------- graphFigure --------
+
+
+        -------- heatmapFigure --------
+
+
+
