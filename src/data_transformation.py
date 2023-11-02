@@ -93,6 +93,7 @@ def compute_derivate(df):
 
     return df_dXdt
 
+# TODO Change to create a generator, use arrays instead of dataframe and use a numpy function to compute derivate
 # Méthode pour calculer la dérivée d'un dataframe.
 def compute_derivate_df(df):
     df_dXdt = pd.DataFrame(np.NaN, index=df.index, columns=df.columns)

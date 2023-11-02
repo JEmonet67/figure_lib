@@ -184,6 +184,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
 
         # Calcul liste de temps de début d'activation de chaque colonnes corticales (t2)
         print("Activation time...", end="")
+        # TODO Use compute_derivate as a generator to loop only untill find a index validating the inflexion condition
         dVSDIdt = dt.compute_derivate(vsdi)
         vsdi_f = vsdi.data[(dVSDIdt>0.01) & (vsdi.data > 0.001)] # vsdi.data > 0.001 dVSDIdt>0.01
         list_inflex_vsdi = [round(vsdi_f.iloc[:,i].dropna().index[0],3) for i in range(len(vsdi_f.columns))]
