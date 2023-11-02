@@ -234,7 +234,6 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
 
 
                 elif type(info_cells["num"][i]) == int:
-                    print(3)
                     info_fig["legend"][i] = [f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°']
 
         # elif info_fig["legend"][i] = []: # Add specific legend
