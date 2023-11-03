@@ -145,7 +145,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
         print("Done!")
 
         print("Crop GraphDF...", end="")
-        df = df.crop(params_sim["delta_t"]*n_transient_frame)
+        df.crop(params_sim["delta_t"]*n_transient_frame)
         print("Done!")
 
         # Calcul VSDI
@@ -210,7 +210,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
     dict_latency_ttp_caract = {"caract":list_caract,
                                 "latency":list_df_latency,
                                 "sttp":list_df_ttp}
-    with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter_new", "wb") as file:  # Pickling
+    with open(path+f"dict_TTP_latency_{list_caract[0][0]}_newVSDI_rfCenter", "wb") as file:  # Pickling
         pickle.dump(dict_latency_ttp_caract, file)
 
     return list_df_latency, list_df_ttp, list_caract
