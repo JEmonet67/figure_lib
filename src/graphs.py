@@ -239,7 +239,7 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
         # elif info_fig["legend"][i] = []: # Add specific legend
 
     f = gfg.graphFigure(list_outputs, len(list_outputs), 1, 20, 20, dict_info_fig=info_fig,
-                                dict_font_size=font_size, dict_params_plot=params_plot)
+                                dict_font_size=font_size, dict_params_plot=params_plot, dict_params_fig=params_fig)
     # f,ax = plt.subplots(1,1, figsize = (20,20))
     # ax.plot(list_outputs[0].data)
 
