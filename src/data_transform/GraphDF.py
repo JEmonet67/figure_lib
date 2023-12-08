@@ -20,8 +20,8 @@ class GraphDF():
                 Returns :
                         
                 '''
-                #df.loc[:,"Time"] = df.loc[:,"Time"]*frame_rate*dt 
-                df = df.set_index("Time")
+                #df.loc[:,"Time"] = df.loc[:,"Time"]*frame_rate*dt
+                df = df.set_index(df.columns[0])
                 
                 return df
 
@@ -33,6 +33,8 @@ class GraphDF():
                         if type(df)==str:
                                 self.data = self.preparation(pd.read_csv(df))
                         elif type(df)==pd.DataFrame:
+                                self.data = df
+                        elif type(df) == pd.DataFrame and df.index.name==None:
                                 self.data = self.preparation(df)
                         else:
                                 raise TypeError("/!\/!\ Path must be a str or a pd.DataFrame /!\/!\\")
@@ -43,7 +45,6 @@ class GraphDF():
                                 self.data = df
                         else:
                                 raise TypeError("/!\/!\ Path must be a str or a pd.DataFrame /!\/!\\")
-
                 self.list_col = [GraphColumn(self.data,self.n_cells[0],self.n_cells[1],i) for i in range(len(self.data.columns))]
 
 
