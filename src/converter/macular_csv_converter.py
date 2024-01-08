@@ -67,7 +67,6 @@ class MacularCsvConverter:
         """
         csv_chunks = self.read_csv(path_csv)
         dicts_num_output_cell_type_index = self.get_output_num_cell_type_dict(self.get_name_columns(path_csv))
-        list_num, list_output_cell_type = self.get_output_num_cell_type_lists(self.get_name_columns(path_csv))
 
         dict_arr_data = self.empty_dict_list_maker(set(dicts_num_output_cell_type_index))
         list_arr_index = []
@@ -272,37 +271,6 @@ class MacularCsvConverter:
             data_array[dict_coord_macular["X"], dict_coord_macular["Y"]] = df.iloc[index].to_numpy()
 
         return data_array
-
-    def get_output_num_cell_type_lists(self, names_col): #TODO Suppress it
-        """Make lists of ID number, output and cell type based on a list of all the columns name in a Macular csv file.
-
-        Each macular data column name are separated into two lists, one for ID number alone and a second for output/cell
-        type together. Indexes of both list correspond of the index of the column in the csv file.
-
-        Parameters
-        ----------
-        names_col : list of str
-            List of all the column present in the csv Macular file.
-
-        Returns
-        ----------
-        list_num : list of int
-            List of all ID number in the file header of a Macular csv file.
-
-        list_output_cell_type : list of str
-            List of all "output_celltype" present in the file header of a Macular csv file.
-
-        """
-        list_num = []
-        list_output_cell_type = []
-
-        for col in names_col:
-            # Output, number and type name extraction from column names
-            (output, num, cell_type) = self.reg_output_num_cell_type.findall(col)[0]
-            list_num += [int(num)]
-            list_output_cell_type += [f"{output}_{cell_type}"]
-
-        return list_num, list_output_cell_type
 
     def get_output_num_cell_type_dict(self, names_col):
         """Make dictionaries of ID number and output-cell type associated to the index of the corresponding columns
