@@ -240,7 +240,6 @@ class MacularCsvConverter:
 
         return dict_arr_data
 
-
     @staticmethod
     def copy_macular_data_to_array(df, data_array, dict_num_index):
         """Copy all the data chunk of a given "output_celltype" pair into the corresponding array.
@@ -305,7 +304,6 @@ class MacularCsvConverter:
 
         return list_num, list_output_cell_type
 
-
     def get_output_num_cell_type_dict(self, names_col):
         """Make dictionaries of ID number and output-cell type associated to the index of the corresponding columns
         in a Macular csv file.
@@ -337,7 +335,6 @@ class MacularCsvConverter:
                 dicts_num_output_cell_type_index[output_cell_type] = {num: i}
 
         return dicts_num_output_cell_type_index
-
 
     @staticmethod
     def empty_dict_list_maker(set_output_cell_type):
