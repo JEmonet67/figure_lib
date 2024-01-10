@@ -421,15 +421,16 @@ def heatmap_picture_function(list_frame_to_select, dict_functions, path_output, 
 
 def make_multiple_graph_peak_latency_delays(path, list_df_latency_delays, list_df_peak_delays, list_caract, params_sim,
                                             params_plot):
-
+    i_graph = 0
     for df_latency_delays, df_peak_delays, list_value_caract in zip(list_df_latency_delays, list_df_peak_delays,
                                                                     list_caract[1]):
         make_graph_peak_latency_delays(path, df_latency_delays, df_peak_delays, list_caract[0], list_value_caract,
-                                       list_caract[2], params_sim, params_plot)
+                                       list_caract[2], params_sim, params_plot, i_graph)
+        i_graph += 1
 
 
 def make_graph_peak_latency_delays(path, df_latency, df_ttp, list_name_caract, list_value_caract, list_unit_caract,
-                                   params_sim, params_plot):
+                                   params_sim, params_plot, i_graph):
     # Plot
     print("Make plot...", end="")
     n_main_axis = params_sim["n_cells_X"] - 1
@@ -470,29 +471,30 @@ def make_graph_peak_latency_delays(path, df_latency, df_ttp, list_name_caract, l
         ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
     elif len(params_plot["Xlim"]) > 1:
         ax.xaxis.set_ticks(np.array(
-            [i for i in range(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1], params_plot["Xlim"][i][2])]))
-        ax.set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
+            [i for i in range(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1], params_plot["Xlim"][i_graph][2])]))
+        ax.set_xlim(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1])
     print("Done!")
 
     if len(list_name_caract) > 1:
         ext_filename = ""
         for i, caract in enumerate(list_name_caract):
-            ext_filename += f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+            ext_filename += f"{caract}{list_value_caract[i]}{list_unit_caract[i]}"
     else:
-        ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+        ext_filename = f"{caract}{list_value_caract[i]}{list_unit_caract[i]}"
 
     plt.savefig(f"{path}/TTP_latency_{ext_filename}_newVSDI_rfCenter.png", bbox_inches='tight')
 
 
 def make_multiple_graph_peak_latency_fit_time(path, list_df_latency, list_df_sttp, list_pred, list_caract,
                                               params_sim, params_plot):
+    i_graph = 0
     for i in range(len(list_df_latency)):
         make_graph_peak_latency_fit_time(path, list_df_latency[i], list_df_sttp[i], list_pred[i], list_caract[0],
-                                         list_caract[1][i], list_caract[2], params_sim, params_plot)
-
+                                         list_caract[1][i], list_caract[2], params_sim, params_plot, i_graph)
+        i_graph += 1
 
 def make_graph_peak_latency_fit_time(path, df_latency, df_ttp, dict_pred, list_name_caract, list_value_caract,
-                                     list_unit_caract, params_sim, params_plot):
+                                     list_unit_caract, params_sim, params_plot, i_graph):
     """
     FUNCTION TO PLOT LATENCY AND STTP DURATION WITH A DEFAULT CURVE OF THE SPEED GAVE IN PARAMS_SIM.
     """
@@ -561,17 +563,17 @@ def make_graph_peak_latency_fit_time(path, df_latency, df_ttp, dict_pred, list_n
         ax.set_xlim(params_plot["Xlim"][0][0], params_plot["Xlim"][0][1])
     elif len(params_plot["Xlim"]) > 1:
         ax.xaxis.set_ticks(np.array(
-            [i for i in range(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1], params_plot["Xlim"][i][2])]))
-        ax.set_xlim(params_plot["Xlim"][i][0], params_plot["Xlim"][i][1])
+            [i for i in range(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1], params_plot["Xlim"][i_graph][2])]))
+        ax.set_xlim(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1])
     print("Done!")
 
     # Set file name extension
     if len(list_name_caract) > 1:
         ext_filename = ""
         for i, caract in enumerate(list_name_caract):
-            ext_filename += f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+            ext_filename += f"{caract}{list_value_caract[i]}{list_unit_caract[i]}"
     else:
-        ext_filename = f" {caract}{list_value_caract[i]}{list_unit_caract[i]}"
+        ext_filename = f"{caract}{list_value_caract[i]}{list_unit_caract[i]}"
 
     fig.tight_layout(pad=0)
 
