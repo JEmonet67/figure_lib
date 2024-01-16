@@ -473,6 +473,16 @@ def make_graph_peak_latency_delays(path, df_latency, df_ttp, list_name_caract, l
         ax.xaxis.set_ticks(np.array(
             [i for i in range(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1], params_plot["Xlim"][i_graph][2])]))
         ax.set_xlim(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1])
+
+    # Set customizable ylim
+    if len(params_plot["Ylim"]) == 1:
+        ax.yaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1], params_plot["Ylim"][0][2])]))
+        ax.set_ylim(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1])
+    elif len(params_plot["Ylim"]) > 1:
+        ax.yaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Ylim"][i_graph][0], params_plot["Ylim"][i_graph][1], params_plot["Ylim"][i_graph][2])]))
+        ax.set_ylim(params_plot["Ylim"][i_graph][0], params_plot["Ylim"][i_graph][1])
     print("Done!")
 
     if len(list_name_caract) > 1:
@@ -565,6 +575,16 @@ def make_graph_peak_latency_fit_time(path, df_latency, df_ttp, dict_pred, list_n
         ax.xaxis.set_ticks(np.array(
             [i for i in range(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1], params_plot["Xlim"][i_graph][2])]))
         ax.set_xlim(params_plot["Xlim"][i_graph][0], params_plot["Xlim"][i_graph][1])
+
+    # Set customizable ylim
+    if len(params_plot["Ylim"]) == 1:
+        ax.yaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1], params_plot["Ylim"][0][2])]))
+        ax.set_ylim(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1])
+    elif len(params_plot["Ylim"]) > 1:
+        ax.yaxis.set_ticks(np.array(
+            [i for i in range(params_plot["Ylim"][i_graph][0], params_plot["Ylim"][i_graph][1], params_plot["Ylim"][i_graph][2])]))
+        ax.set_ylim(params_plot["Ylim"][i_graph][0], params_plot["Ylim"][i_graph][1])
     print("Done!")
 
     # Set file name extension
@@ -583,28 +603,28 @@ def make_graph_peak_latency_fit_time(path, df_latency, df_ttp, dict_pred, list_n
 
 def make_peak_latency_summary_graph(fig, ax, path, df_measures, list_caract, xlabel):
     # Plot time graph
-    ax[0].set_ylabel("Time (ms)", fontsize=25, labelpad=5)
+    ax[0].set_ylabel("Delay to center bar on center RF (ms)", fontsize=25, labelpad=5)
     ax[0].plot(df_measures.loc[:, "Stationary peak delay"], c="purple", marker="o", markersize=10,
                label="Stationary peak delay")
-    ax[0].plot(df_measures.loc[:, "Stationary end latency delay"], c="red", marker="o", markersize=10,
-               label="Stationary end latency delay")
-    ax[0].yaxis.set_ticks(np.array([i for i in range(-800, 300, 200)]))
+    ax[0].plot(df_measures.loc[:, "Stationary latency delay"], c="red", marker="o", markersize=10,
+               label="Stationary latency delay")
+    ax[0].yaxis.set_ticks(np.array([i for i in range(-800, 300, 100)]))
 
     # Plot spatial graph
     ax[1].set_ylabel("Distance (°)", fontsize=25, labelpad=5)
     ax[1].plot(df_measures.loc[:, "Inflexion point"], c="green", marker="o", markersize=10,
                label="Inflexion point")
-    ax[1].yaxis.set_ticks(np.array([i for i in range(0, 9, 1)]))
+    ax[1].yaxis.set_ticks(np.array([i for i in range(0, 10, 1)]))
 
     # Plot speed graph
     ax[2].set_ylabel("Speed (°/s)", fontsize=25, labelpad=5)
-    ax[2].plot(df_measures.loc[:, "Start latency speed"], c="deepskyblue", marker="o", markersize=10,
-               label="Start latency speed")
-    ax[2].plot(df_measures.loc[:, "End latency speed"], c="red", marker="o", markersize=10,
-               label="End latency speed")
+    ax[2].plot(df_measures.loc[:, "Short range latency speed"], c="deepskyblue", marker="o", markersize=10,
+               label="Short range latency speed")
+    ax[2].plot(df_measures.loc[:, "Long range latency speed"], c="red", marker="o", markersize=10,
+               label="Long range latency speed")
     ax[2].plot(df_measures.loc[:, "Peak speed"], c="purple", marker="o", markersize=10,
                label="Peak speed")
-    ax[2].yaxis.set_ticks(np.array([i for i in range(0, 31, 10)]))
+    ax[2].yaxis.set_ticks(np.array([i for i in range(0, 41, 10)]))
 
     # Set global parameters values
     for axe in [ax[0], ax[1], ax[2]]:

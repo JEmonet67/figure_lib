@@ -34,10 +34,10 @@ def compute_peak_latency_time_fit(list_df_latency_delays, list_df_peak_delays, l
 
         # Fill fit dataframe.
         df_fit.loc[[f"{list_caract[1][i][0]}"], ["Inflexion point"]] = dict_fit_latency_time["inflexion point"]
-        df_fit.loc[[f"{list_caract[1][i][0]}"], ["Start latency speed"]] = dict_fit_latency_time["start speed"]
-        df_fit.loc[[f"{list_caract[1][i][0]}"], ["End latency speed"]] = dict_fit_latency_time["end speed"]
+        df_fit.loc[[f"{list_caract[1][i][0]}"], ["Short range latency speed"]] = dict_fit_latency_time["start speed"]
+        df_fit.loc[[f"{list_caract[1][i][0]}"], ["Long range latency speed"]] = dict_fit_latency_time["end speed"]
         df_fit.loc[[f"{list_caract[1][i][0]}"], ["Peak speed"]] = dict_fit_peak_time["peak speed"]
-        df_fit.loc[[f"{list_caract[1][i][0]}"], ["Stationary end latency delay"]] = s_end_latency_delay
+        df_fit.loc[[f"{list_caract[1][i][0]}"], ["Stationary latency delay"]] = s_end_latency_delay
         df_fit.loc[[f"{list_caract[1][i][0]}"], ["Stationary peak delay"]] = s_peak_delay
 
         # Fill dictionaries ouptuts
