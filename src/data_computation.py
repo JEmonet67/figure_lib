@@ -131,7 +131,10 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
 
         for i_name, name_value in enumerate(list_name_caract):
             if name_value == "barSpeed":
-                speed = float(list_value_caract[i_name])
+                if type(list_value_caract[i_name]) == str:
+                    speed = float(list_value_caract[i_name].replace(",","."))
+                else:
+                    speed = float(list_value_caract[i_name])
                 break
             elif name_value != "barSpeed":
                 speed = params_sim["speed"]
