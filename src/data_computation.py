@@ -175,7 +175,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
 
         # Calcul temps centre barre milieu champ récepteur (t0)
         print("Compute t0 bar center on middle RF...", end="")
-        list_barcenter = [np.round(((np.round(x_col * params_sim["dx"], 2) + params_sim["size_bar"] / 2) / speed - params_sim["delta_t"]), 2)
+        list_barcenter = [np.round(((np.round(x_col * params_sim["dx"], 5) + params_sim["size_bar"] / 5) / speed - params_sim["delta_t"]), 5)
                           for x_col in range(first_cell, last_cell + 1)]
         print("Done !")
 
@@ -197,7 +197,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
         list_ttp = [(list_max_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_max_vsdi))]
         #list_ttp = list_ttp[6:params_sim["n_cells_X"]-4]
         list_latency = [(list_inflex_vsdi[i]-list_barcenter[i])*1000 for i in range(len(list_inflex_vsdi))]
-        #list_latency = list_latency[6:params_sim["n_cells_X"]-4]
+        #list_latency = list_latency[6:params_sim["n_cells_X"]-4]*
 
         print("Done!")
 
