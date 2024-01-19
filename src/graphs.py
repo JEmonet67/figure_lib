@@ -11,7 +11,7 @@ import make_figure.graphFigure as gfg
 import data_transform.GraphDF as gdf
 import coordinate_manager as cm
 import stim_help_functions as hf
-
+import matplotlib.patches as mpatches
 
 
 # TODO : Nettoyer plot_one_graph pour n'avoir qu'une fonction qui prend un dictionnaire
@@ -76,7 +76,7 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
 
         -- Input --
     title : Name of the title to set in the graph.
-    num : Macular ID number of the cell to display. By default, the function will chose the middle cell.
+    num : Macular ID number of the cell to display. By default, the function will choose the middle cell.
 
         -- Output --
     Make a figure with of one graph.
@@ -202,8 +202,9 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
 
 
         print("Set legend")
+        type_legend = info_fig["legend"][i]
         # Legend name generation for coordinates in degree selected
-        if info_fig["legend"][i]=="coord_degree":
+        if type_legend=="coord_degree":
             if info_cells["name_output"][i] == "VSDI":
                 if type(info_cells["num"][i]) == list:
                     if params_sim["axis"]: # Vertical axis
@@ -235,6 +236,15 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
 
                 elif type(info_cells["num"][i]) == int:
                     info_fig["legend"][i] = [f'{round(np.floor((int(info_cells["num"][i]) - params_sim["n_cells_X"] * params_sim["n_cells_Y"] * info_cells["layer"][i]) / params_sim["n_cells_Y"]) * params_sim["dx"], 2)}°']
+
+        elif type_legend == "deg_by_deg":
+            if info_cells["name_output"][i] == "VSDI":
+                if type(info_cells["num"][i]) == list:
+                    if params_sim["axis"]: # Vertical axis
+                        info_fig["legend"][i] = info_fig["legend"][i] = [f"{i_deg}°" for i_deg in range(int(np.ceil((params_sim["n_cells_Y"]-1)*params_sim["dx"])))]
+
+                    else: # Horizontal axis
+                        info_fig["legend"][i] = [f"{i_deg}°" for i_deg in range(int(np.ceil((params_sim["n_cells_X"]-1)*params_sim["dx"])))]
 
         # elif info_fig["legend"][i] = []: # Add specific legend
 
@@ -269,6 +279,7 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
 
 
     # For one graph figures
+
     else:
         # Set X and Y egde values
         if params_plot["Xlim"][i] != ():
@@ -277,8 +288,17 @@ def plot_one_graph(path, df, params_sim, info_cells, info_fig, params_fig, font_
             f.ax.set_ylim(params_plot["Ylim"][0][0], params_plot["Ylim"][0][1])
 
         # Set legend
-        if type(info_fig["legend"][i]) == list:
-            f.ax.legend(info_fig["legend"][0], fontsize=font_size['legend'])
+        if type_legend == "coord_degree":
+            if type(info_fig["legend"][i]) == list:
+                f.ax.legend(info_fig["legend"][0], fontsize=font_size['legend'], labelspacing = 0.2)
+
+        elif type_legend == "deg_by_deg":
+            n_legend = int(round((params_sim["n_cells_X"] - 1) * params_sim["dx"]))
+            col_legend = [(0, 0, (i / (n_legend / 2))) if i < (n_legend / 2) else
+                          (0, (i - n_legend / 2) / (n_legend / 2), 1.0) for i in range(0, n_legend + 1, 1)]
+            if type(info_fig["legend"][i]) == list:
+                list_patch = [mpatches.Patch(color=col_legend[i], label=info_fig["legend"][0][i]) for i in range(n_legend+1)]
+                f.ax.legend(handles=list_patch, fontsize=font_size['legend']+10, labelspacing = 0.2)
 
         # Browse selected post-prod treatment
         for name, value in info_fig["postprod"].items():

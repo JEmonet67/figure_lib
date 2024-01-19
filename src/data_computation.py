@@ -113,7 +113,6 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
     print("Files sorting...", end="")
     files.sort(key = lambda x : float(dict_re["file"].findall(x)[0][1].replace(",",".")))
     print("Done !")
-    print(files)
     list_df_latency = []
     list_df_ttp = []
     list_list_value_caract = []
@@ -143,6 +142,7 @@ def compute_peak_latency_delays(path, params_sim, params_plot, dict_re):
 
         list_list_value_caract.append(list_value_caract)
         n_transient_frame = int(n_transient_frame)
+        print(f"============ {file} ============")
         print("Create GraphDF...", end="")
         df = gdf.GraphDF(f"{path}/{file}",params_sim["delta_t"],60,params_sim["n_cells_X"],params_sim["n_cells_Y"])
         print("Done!")
